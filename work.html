@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Work</title>
+<style>
+    body {
+      background: black;
+      color: white;
+      font-family: Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1.brand {
+      font-size: 80px;
+      letter-spacing: -2px;
+      font-size: 80px;
+      color: #888;
+      text-align: center;
+      margin: 60px 0;
+    }
+    .back {
+      display: block;
+      text-align: left;
+      padding-left: 60px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+      margin-top: 80px;
+    }
+    footer {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      padding-bottom: 40px;
+    }
+    a {
+      color: white;
+      text-decoration: none;
+    }
+    
+@media (max-width: 768px) {
+  h1.brand {
+      font-size: 80px;
+      letter-spacing: -2px;
+    font-size: 80px;
+    margin: 40px 0;
+  }
+
+  .back {
+    font-size: 20px;
+    padding-left: 30px;
+  }
+
+  .gallery {
+    flex-direction: column !important;
+    align-items: center;
+  }
+
+  .gallery img {
+    width: 80% !important;
+    margin-bottom: 20px;
+  }
+
+  .container {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .container img {
+    width: 90% !important;
+  }
+
+  .text {
+    padding: 20px;
+    max-width: 90% !important;
+    text-align: center !important;
+  }
+}
+
+  
+.cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+
+
+
+
+@keyframes rainbowFlicker {
+  0% { color: #FF1E56; }
+  14% { color: #FFB100; }
+  28% { color: #F4FF00; }
+  42% { color: #00FF84; }
+  57% { color: #00E1FF; }
+  71% { color: #6A00FF; }
+  85% { color: #C900FF; }
+  100% { color: #FF1E56; }
+}
+
+a:hover {
+  animation: rainbowFlicker 0.25s infinite;
+}
+
+
+
+
+  25%  { transform: translate(-48%, -52%) rotate(10deg); }
+  50%  { transform: translate(-50%, -50%) rotate(-10deg); }
+  75%  { transform: translate(-52%, -48%) rotate(10deg); }
+  100% { transform: translate(-50%, -50%) rotate(0deg); }
+}
+
+
+.cursor.hovering {
+  animation: wiggleZoomCursor 0.15s infinite;
+}
+
+@keyframes wiggleZoomCursor {
+  0%   { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  25%  { transform: translate(-48%, -52%) scale(1.3) rotate(10deg); }
+  50%  { transform: translate(-50%, -50%) scale(1.1) rotate(-10deg); }
+  75%  { transform: translate(-52%, -48%) scale(1.3) rotate(10deg); }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
+
+</style>
+
+
+
+<style>
+.project-image {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.project-image.zoomed-in {
+  transform: scale(1.2);
+  z-index: 2;
+}
+
+.project-image.dimmed {
+  transform: scale(0.8);
+  opacity: 0.6;
+}
+</style>
+
+<style>
+@keyframes blink-bg {
+  0% { background-color: #FF1E56; color: #FF1E56; }
+  20% { background-color: #FFB100; color: #FFB100; }
+  40% { background-color: #F4FF00; color: #F4FF00; }
+  60% { background-color: #00FF84; color: #00FF84; }
+  80% { background-color: #00E1FF; color: #00E1FF; }
+  100% { background-color: #6A00FF; color: #6A00FF; }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.page-wrapper {
+  min-height: 100vh;
+  height: 100%;
+  width: 100%;
+  background-color: transparent;
+}
+
+html.blinking {
+  animation: blink-bg 0.15s steps(1, end) infinite;
+}
+
+.page-wrapper.blinking {
+  animation: blink-bg 0.15s steps(1, end) infinite;
+}
+
+.page-wrapper.blinking .clickable {
+  color: inherit !important;
+}
+</style>
+</head>
+<body><div class="page-wrapper">
+<h1 class="brand">liminalsynths</h1>
+<div class="gallery" style="display: flex; justify-content: center; gap: 20px;">
+<a href="passion.html"><img alt="passion" class="project-image" src="images/passion.png" style="width: 300px;"/></a>
+<a href="mutant.html"><img alt="mutant" class="project-image" src="images/mutant.png" style="width: 300px;"/></a>
+<a href="melite.html"><img alt="melite" class="project-image" src="images/melite.png" style="width: 300px;"/></a>
+</div>
+<a class="back" href="index.html">back</a>
+<footer><strong>liminalsynths ©2025 copyright.</strong></footer>
+<div class="cursor" id="cursor"></div>
+<script>
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+
+  document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('mouseenter', () => {
+      cursor.classList.add('hovering');
+    });
+    link.addEventListener('mouseleave', () => {
+      cursor.classList.remove('hovering');
+    });
+  });
+</script>
+</div>
+
+
+<script>
+document.querySelectorAll('.project-image').forEach(img => {
+  img.addEventListener('mouseenter', () => {
+    document.querySelectorAll('.project-image').forEach(other => {
+      if (other !== img) {
+        other.classList.add('dimmed');
+      } else {
+        img.classList.add('zoomed-in');
+      }
+    });
+  });
+  img.addEventListener('mouseleave', () => {
+    document.querySelectorAll('.project-image').forEach(other => {
+      other.classList.remove('dimmed', 'zoomed-in');
+    });
+  });
+});
+</script>
+
+<script>
+document.querySelectorAll('a, button, .clickable, .project-image').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    document.documentElement.classList.add('blinking');
+    document.querySelector('.page-wrapper').classList.add('blinking');
+  });
+  el.addEventListener('mouseleave', () => {
+    document.documentElement.classList.remove('blinking');
+    document.querySelector('.page-wrapper').classList.remove('blinking');
+  });
+});
+</script>
+</body>
+</html>
