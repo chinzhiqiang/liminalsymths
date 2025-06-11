@@ -154,7 +154,15 @@ html, body {
 }
 </style>
 </head>
-<body><div class="page-wrapper">
+<body>
+
+<!-- 📱 手機提示畫面 -->
+<div id="mobile-warning" style="display: none; position: fixed; z-index: 9999; inset: 0; background: white; color: black; font-size: 1.2rem; text-align: center; padding: 3rem 1rem; line-height: 1.8;">
+  為獲得良好的瀏覽體驗，<br>
+  請使用電腦端開啟頁面<br><br>
+  Please use desktop for better experience 🙏
+</div>
+<div class="page-wrapper">
 <header>
 <h1>liminalsynths</h1>
 </header>
@@ -170,13 +178,6 @@ html, body {
 <strong>liminalsynths ©2025 copyright.</strong>
 </footer>
 <div class="cursor" id="cursor"></div>
-<!-- 📱 手機提示畫面 -->
-<div id="mobile-warning" style="display: none; position: fixed; z-index: 9999; inset: 0; background: white; color: black; font-size: 1.2rem; text-align: center; padding: 3rem 1rem; line-height: 1.8;">
-  為獲得良好的瀏覽體驗，<br>
-  請使用電腦端開啟頁面<br><br>
-  Please use desktop for better experience 🙏
-</div>
-
 <script>
   const cursor = document.getElementById('cursor');
   document.addEventListener('mousemove', e => {
