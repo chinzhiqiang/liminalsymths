@@ -154,15 +154,7 @@ html, body {
 }
 </style>
 </head>
-<body>
-
-<!-- 📱 手機提示畫面 -->
-<div id="mobile-warning" style="display: none; position: fixed; z-index: 9999; inset: 0; background: white; color: black; font-size: 1.2rem; text-align: center; padding: 3rem 1rem; line-height: 1.8;">
-  為獲得良好的瀏覽體驗，<br>
-  請使用電腦端開啟頁面<br><br>
-  Please use desktop for better experience 🙏
-</div>
-<div class="page-wrapper">
+<body><div class="page-wrapper">
 <header>
 <h1>liminalsynths</h1>
 </header>
@@ -205,20 +197,5 @@ document.querySelectorAll('a, button, .clickable').forEach(el => {
   });
 });
 </script>
-
-<script>
-  function isMobileDevice() {
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }
-
-  if (isMobileDevice()) {
-    document.body.innerHTML = '';
-    document.body.appendChild(document.getElementById('mobile-warning'));
-    document.getElementById('mobile-warning').style.display = 'flex';
-    document.getElementById('mobile-warning').style.justifyContent = 'center';
-    document.getElementById('mobile-warning').style.alignItems = 'center';
-  }
-</script>
-
 </body>
 </html>
