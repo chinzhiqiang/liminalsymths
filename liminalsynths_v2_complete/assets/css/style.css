@@ -1,0 +1,57 @@
+
+:root {
+  --bg: #0b0b0c;
+  --fg: #e9e9e6;
+  --muted: #9a9a96;
+
+  /* Unified typography scale */
+  --fs-xl: 48px;
+  --fs-lg: 28px;
+  --fs-md: 18px;
+  --fs-sm: 14px;
+  --fs-xs: 12px;
+
+  --lh-xl: 1.2;
+  --lh-lg: 1.3;
+  --lh-md: 1.6;
+  --lh-sm: 1.6;
+
+  --space-xl: 120px;
+  --space-lg: 80px;
+  --space-md: 40px;
+  --space-sm: 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
+h1 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-xl);
+  font-weight: 500;
+}
+
+h2 {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-lg);
+  font-weight: 400;
+}
+
+p {
+  font-size: var(--fs-md);
+  line-height: var(--lh-md);
+  max-width: 680px;
+}
+
+.small {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
