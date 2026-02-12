@@ -3,13 +3,13 @@
     const el = document.getElementById("logo");
     if (!el) return;
 
-    // --- 隨機參數：卡邊偏移、傾斜、彈跳幅度 ---
     const rand = (min, max) => Math.random() * (max - min) + min;
 
-    const x = rand(-140, 140);
-    const rot = rand(-14, -6) * (Math.random() < 0.5 ? 1 : -1);
-    const over = rand(14, 34);
-    const b1 = -rand(6, 18);
+    // --- 隨機參數 ---
+    const x = rand(-160, 160);
+    const rot = rand(6, 14) * (Math.random() < 0.5 ? -1 : 1) * -1; // 偏硬的傾斜
+    const over = rand(16, 36);
+    const b1 = -rand(8, 20);
     const b2 = rand(2, 10);
     const b3 = -rand(1, 7);
 
@@ -19,77 +19,88 @@
     el.style.setProperty("--b1", `${b1}px`);
     el.style.setProperty("--b2", `${b2}px`);
     el.style.setProperty("--b3", `${b3}px`);
-
-    // --- 強制重播掉落動畫（避免快取看起來沒動） ---
-    el.classList.remove("is-landed");
     el.style.setProperty("--lift", `0px`);
+
+    // --- 重播掉落 ---
+    el.classList.remove("is-landed");
     el.classList.remove("logo-drop");
     void el.offsetWidth;
     el.classList.add("logo-drop");
 
-    // 等掉落動畫結束 → 進入「落地可互動」狀態
+    // 掉落結束 → 開放互動
     const onAnimEnd = () => {
       el.classList.add("is-landed");
       el.removeEventListener("animationend", onAnimEnd);
     };
     el.addEventListener("animationend", onAnimEnd);
 
-    // --- 互動：滑鼠移到 logo 底部區域就抬起，離開就掉落 ---
-    const HIT = 80;       // 底部感應區高度(px)
-    const MAX_LIFT = 90;  // 最高抬起高度(px)
+    // --- 互動參數 ---
+    const HIT = 110;      // 感應區高度：靠近畫面底部
+    const MAX_LIFT = 120; // 最高抬起高度
     let lifting = false;
-    let currentLift = 0;
 
-    function inBottomZone(clientX, clientY, rect){
-      const insideX = clientX >= rect.left && clientX <= rect.right;
-      const insideY = clientY >= (rect.bottom - HIT) && clientY <= rect.bottom;
-      return insideX && insideY;
-    }
-
-    function setLift(px){
-      currentLift = px;
-      el.style.setProperty("--lift", `${px}px`);
-    }
-
-    // 用 requestAnimationFrame 讓抬起更順
+    // 用彈簧式回彈（不用 el.animate 避免 transform 打架）
+    let y = 0;     // 當前 lift（負值=抬起）
+    let v = 0;     // 速度
+    let target = 0;
     let raf = 0;
-    function onMove(e){
-      if (!el.classList.contains("is-landed")) return;
+
+    function apply() {
+      el.style.setProperty("--lift", `${y}px`);
+    }
+
+    function tick() {
+      // 簡單彈簧：往 target 靠近 + 阻尼
+      const k = 0.12;   // 彈力（越大越硬）
+      const d = 0.78;   // 阻尼（越小越Q，越大越快停）
+      v = (v + (target - y) * k) * d;
+      y += v;
+
+      // 收斂停止
+      if (Math.abs(v) < 0.05 && Math.abs(target - y) < 0.2) {
+        y = target;
+        v = 0;
+        apply();
+        raf = 0;
+        return;
+      }
+
+      apply();
+      raf = requestAnimationFrame(tick);
+    }
+
+    function setTarget(next) {
+      target = next;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+
+    // 感應區：在視窗底部 HIT px 內 + 在 logo 的 X 範圍內
+    function isHit(e) {
+      if (!el.classList.contains("is-landed")) return false;
 
       const rect = el.getBoundingClientRect();
-      const hit = inBottomZone(e.clientX, e.clientY, rect);
+      const inX = e.clientX >= rect.left && e.clientX <= rect.right;
+      const inBottomOfViewport = e.clientY >= (window.innerHeight - HIT) && e.clientY <= window.innerHeight;
+      return inX && inBottomOfViewport;
+    }
 
-      if (hit){
+    function onMove(e) {
+      const hit = isHit(e);
+
+      if (hit) {
         lifting = true;
 
-        // 越靠近底邊中心越抬（有一點「撬起來」的感覺）
-        const d = rect.bottom - e.clientY; // 0 ~ HIT
-        const t = Math.max(0, Math.min(1, (HIT - d) / HIT));
-        const target = - (20 + t * (MAX_LIFT - 20)); // 最少也抬 20px
+        // 距離底部越近 → 抬越高（更像撬）
+        const depth = Math.max(0, Math.min(HIT, window.innerHeight - e.clientY)); // 0..HIT
+        const t = depth / HIT; // 0..1
+        const lift = -(20 + t * (MAX_LIFT - 20)); // -20..-MAX_LIFT
 
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => setLift(target));
+        setTarget(lift);
       } else {
-        if (lifting){
+        if (lifting) {
           lifting = false;
-          // 放手掉落：用 Web Animations 直接從目前高度掉回 0，帶回彈
-          const from = currentLift;
-          setLift(from);
-
-          el.animate(
-            [
-              { transform: `translate(calc(-50% + ${x}px), calc(0px + ${from}px)) rotate(${rot}deg)` },
-              { transform: `translate(calc(-50% + ${x}px), calc(0px + 16px)) rotate(${rot}deg)`, offset: 0.70 },
-              { transform: `translate(calc(-50% + ${x}px), calc(0px + -8px)) rotate(${rot}deg)`, offset: 0.84 },
-              { transform: `translate(calc(-50% + ${x}px), calc(0px + 5px)) rotate(${rot}deg)`, offset: 0.92 },
-              { transform: `translate(calc(-50% + ${x}px), calc(0px + -3px)) rotate(${rot}deg)`, offset: 0.97 },
-              { transform: `translate(calc(-50% + ${x}px), calc(0px + 0px)) rotate(${rot}deg)` }
-            ],
-            { duration: 520, easing: "cubic-bezier(.18,.9,.2,1)", fill: "forwards" }
-          );
-
-          // 同步把 --lift 回到 0（動畫結束後落地）
-          setLift(0);
+          // 放手：目標回到 0（會自然掉落回彈）
+          setTarget(0);
         }
       }
     }
