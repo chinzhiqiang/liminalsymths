@@ -1,1 +1,97 @@
-Add style.css
+@font-face{
+  font-family: "NeueMetanaNext";
+  src: url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root{
+  --bg: #FFF6F6;
+  --text: #111;
+  --pill: #D9D9D9;
+}
+
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
+}
+
+/* 16:9 視覺邏輯：不強迫改 viewport 比例，但你的設計會以 16:9 的底部著地感去做 */
+.landing{
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Logo：落在畫面「底端」 */
+.logo-drop{
+  position: absolute;
+  left: 50%;
+  bottom: 0;                 /* ✅ 最終停在底端 */
+  width: min(1500px, 96vw);   /* 超大 logo */
+  height: auto;
+
+  /* 從頂端外面掉下來 */
+  transform: translate(-50%, -120vh);
+
+  /* 硬一點的回彈：快速落下 + 小幅反彈 */
+  animation: dropHard 900ms cubic-bezier(.2, .9, .2, 1) 120ms forwards;
+  will-change: transform;
+}
+
+/* 小連結：灰底黑字、直排置中（像你截圖） */
+.mini-nav{
+  position: absolute;
+  left: 50%;
+  bottom: 110px;              /* ✅ 讓它在畫面下方偏中間（可微調） */
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+
+  /* 等 logo 落地後才出現 */
+  opacity: 0;
+  transform-origin: center;
+  animation: miniIn 380ms ease 980ms forwards;
+}
+
+.mini-pill{
+  display: inline-block;
+  background: var(--pill);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-decoration: underline;
+}
+
+.mini-pill.is-text{
+  text-decoration: none;
+  cursor: default;
+}
+
+/* ✅ 你要的：硬度回彈（比較像「砸下來」而不是軟Q） */
+@keyframes dropHard{
+  0%   { transform: translate(-50%, -120vh); }
+  78%  { transform: translate(-50%, 14px); }  /* 先稍微砸過頭 */
+  88%  { transform: translate(-50%, -6px); }  /* 回彈 */
+  100% { transform: translate(-50%, 0); }     /* 落在底端 */
+}
+
+@keyframes miniIn{
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* 手機：避免 logo 太大把 nav 壓掉 */
+@media (max-width: 640px){
+  .logo-drop{ width: 120vw; }
+  .mini-nav{ bottom: 90px; }
+}
