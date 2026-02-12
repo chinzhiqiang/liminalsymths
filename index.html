@@ -1,53 +1,99 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>liminalsynths</title>
-  <link rel="stylesheet" href="assets/style.css" />
-</head>
+<script>
+  window.addEventListener("load", () => {
+    const el = document.getElementById("logo");
+    if (!el) return;
 
-<body>
-  <main class="landing" aria-label="liminalsynths landing">
+    // --- 隨機參數：卡邊偏移、傾斜、彈跳幅度 ---
+    const rand = (min, max) => Math.random() * (max - min) + min;
 
-    <img id="logo" class="logo-drop" src="assets/logo.svg" alt="liminalsynths logo" />
+    const x = rand(-140, 140);
+    const rot = rand(-14, -6) * (Math.random() < 0.5 ? 1 : -1);
+    const over = rand(14, 34);
+    const b1 = -rand(6, 18);
+    const b2 = rand(2, 10);
+    const b3 = -rand(1, 7);
 
-    <nav class="mini-nav" aria-label="site">
-      <a class="mini-pill" href="about.html">about</a>
-      <a class="mini-pill" href="work.html">work</a>
-      <a class="mini-pill" href="contact.html">contact</a>
-      <span class="mini-pill is-text">by zhigiangchin</span>
-    </nav>
+    el.style.setProperty("--x", `${x}px`);
+    el.style.setProperty("--rot", `${rot}deg`);
+    el.style.setProperty("--over", `${over}px`);
+    el.style.setProperty("--b1", `${b1}px`);
+    el.style.setProperty("--b2", `${b2}px`);
+    el.style.setProperty("--b3", `${b3}px`);
 
-  </main>
+    // --- 強制重播掉落動畫（避免快取看起來沒動） ---
+    el.classList.remove("is-landed");
+    el.style.setProperty("--lift", `0px`);
+    el.classList.remove("logo-drop");
+    void el.offsetWidth;
+    el.classList.add("logo-drop");
 
-  <!-- 🔥 加在這裡 -->
-  <script>
-    window.addEventListener("load", () => {
-      const el = document.getElementById("logo");
-      if (!el) return;
+    // 等掉落動畫結束 → 進入「落地可互動」狀態
+    const onAnimEnd = () => {
+      el.classList.add("is-landed");
+      el.removeEventListener("animationend", onAnimEnd);
+    };
+    el.addEventListener("animationend", onAnimEnd);
 
-      const rand = (min, max) => Math.random() * (max - min) + min;
+    // --- 互動：滑鼠移到 logo 底部區域就抬起，離開就掉落 ---
+    const HIT = 80;       // 底部感應區高度(px)
+    const MAX_LIFT = 90;  // 最高抬起高度(px)
+    let lifting = false;
+    let currentLift = 0;
 
-      const x = rand(-140, 140);
-      const rot = rand(-14, -6) * (Math.random() < 0.5 ? 1 : -1);
-      const over = rand(14, 34);
-      const b1 = -rand(6, 18);
-      const b2 = rand(2, 10);
-      const b3 = -rand(1, 7);
+    function inBottomZone(clientX, clientY, rect){
+      const insideX = clientX >= rect.left && clientX <= rect.right;
+      const insideY = clientY >= (rect.bottom - HIT) && clientY <= rect.bottom;
+      return insideX && insideY;
+    }
 
-      el.style.setProperty("--x", `${x}px`);
-      el.style.setProperty("--rot", `${rot}deg`);
-      el.style.setProperty("--over", `${over}px`);
-      el.style.setProperty("--b1", `${b1}px`);
-      el.style.setProperty("--b2", `${b2}px`);
-      el.style.setProperty("--b3", `${b3}px`);
+    function setLift(px){
+      currentLift = px;
+      el.style.setProperty("--lift", `${px}px`);
+    }
 
-      el.classList.remove("logo-drop");
-      void el.offsetWidth;
-      el.classList.add("logo-drop");
-    });
-  </script>
+    // 用 requestAnimationFrame 讓抬起更順
+    let raf = 0;
+    function onMove(e){
+      if (!el.classList.contains("is-landed")) return;
 
-</body>
-</html>
+      const rect = el.getBoundingClientRect();
+      const hit = inBottomZone(e.clientX, e.clientY, rect);
+
+      if (hit){
+        lifting = true;
+
+        // 越靠近底邊中心越抬（有一點「撬起來」的感覺）
+        const d = rect.bottom - e.clientY; // 0 ~ HIT
+        const t = Math.max(0, Math.min(1, (HIT - d) / HIT));
+        const target = - (20 + t * (MAX_LIFT - 20)); // 最少也抬 20px
+
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => setLift(target));
+      } else {
+        if (lifting){
+          lifting = false;
+          // 放手掉落：用 Web Animations 直接從目前高度掉回 0，帶回彈
+          const from = currentLift;
+          setLift(from);
+
+          el.animate(
+            [
+              { transform: `translate(calc(-50% + ${x}px), calc(0px + ${from}px)) rotate(${rot}deg)` },
+              { transform: `translate(calc(-50% + ${x}px), calc(0px + 16px)) rotate(${rot}deg)`, offset: 0.70 },
+              { transform: `translate(calc(-50% + ${x}px), calc(0px + -8px)) rotate(${rot}deg)`, offset: 0.84 },
+              { transform: `translate(calc(-50% + ${x}px), calc(0px + 5px)) rotate(${rot}deg)`, offset: 0.92 },
+              { transform: `translate(calc(-50% + ${x}px), calc(0px + -3px)) rotate(${rot}deg)`, offset: 0.97 },
+              { transform: `translate(calc(-50% + ${x}px), calc(0px + 0px)) rotate(${rot}deg)` }
+            ],
+            { duration: 520, easing: "cubic-bezier(.18,.9,.2,1)", fill: "forwards" }
+          );
+
+          // 同步把 --lift 回到 0（動畫結束後落地）
+          setLift(0);
+        }
+      }
+    }
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+  });
+</script>
