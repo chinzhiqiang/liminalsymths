@@ -29,13 +29,6 @@ body{
   background: var(--bg);
 }
 
-.landing{
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden; /* ✅ 讓超大 logo 卡邊被裁切 */
-  background: var(--bg);
-}
-
 /* Logo：超大、卡邊、傾斜（由 JS 隨機決定角度與左右偏移） */
 .logo-drop{
   position: absolute;
