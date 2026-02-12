@@ -13,78 +13,25 @@
 }
 
 *{ box-sizing: border-box; }
-
-html,body{
-  height:100%;
-  margin:0;
-}
-
+html,body{ height:100%; }
 body{
+  margin:0;
   background: var(--bg);
   color: var(--text);
-  font-family: "NeueMetanaNext", ui-sans-serif, system-ui;
+  font-family: "NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
 .landing{
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow: hidden; /* ✅ 卡邊裁切 */
+  background: var(--bg);
 }
 
+/* ✅ 超大 Logo：卡邊、落地、可被撥動（剛體） */
 .logo-drop{
   position: absolute;
   left: 50%;
   bottom: 0;
 
-  width: min(2200px, 165vw);
-  height: auto;
-
-  --x: 0px;
-  --rot: -8deg;
-  --lift: 0px;
-  --tilt: 0deg;
-
-  transform-origin: 50% 100%;
-  transform:
-    translate(calc(-50% + var(--x)), var(--lift))
-    rotate(calc(var(--rot) + var(--tilt)));
-
-  animation: dropHard 900ms cubic-bezier(.18,.92,.2,1) forwards;
-
-  filter: drop-shadow(0px 10px 20px rgba(0,0,0,.12));
-  user-select: none;
-  pointer-events: none;
-}
-
-.logo-drop.is-landed{
-  animation: none;
-}
-
-@keyframes dropHard{
-  0%   { transform: translate(calc(-50% + var(--x)), -120vh) rotate(var(--rot)); }
-  80%  { transform: translate(calc(-50% + var(--x)), 20px) rotate(var(--rot)); }
-  100% { transform: translate(calc(-50% + var(--x)), 0px) rotate(var(--rot)); }
-}
-
-.mini-nav{
-  position: absolute;
-  left: 50%;
-  bottom: 140px;
-  transform: translateX(-50%);
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-}
-
-.mini-pill{
-  background: var(--pill);
-  color: var(--text);
-  font-size: 14px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  text-decoration: underline;
-}
-
-.mini-pill.is-text{
-  text-decoration: none;
-}
+  /* ✅ 這個是你要的「大到卡邊」核心 */
