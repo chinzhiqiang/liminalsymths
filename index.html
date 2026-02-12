@@ -1,110 +1,125 @@
-<script>
-  window.addEventListener("load", () => {
-    const el = document.getElementById("logo");
-    if (!el) return;
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>liminalsynths</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
 
-    const rand = (min, max) => Math.random() * (max - min) + min;
+<body>
+  <main class="landing" aria-label="liminalsynths landing">
+    <img id="logo" class="logo-drop" src="assets/logo.svg" alt="liminalsynths logo" />
 
-    // --- 隨機參數 ---
-    const x = rand(-160, 160);
-    const rot = rand(6, 14) * (Math.random() < 0.5 ? -1 : 1) * -1; // 偏硬的傾斜
-    const over = rand(16, 36);
-    const b1 = -rand(8, 20);
-    const b2 = rand(2, 10);
-    const b3 = -rand(1, 7);
+    <nav class="mini-nav" aria-label="site">
+      <a class="mini-pill" href="about.html">about</a>
+      <a class="mini-pill" href="work.html">work</a>
+      <a class="mini-pill" href="contact.html">contact</a>
+      <span class="mini-pill is-text">by zhigiangchin</span>
+    </nav>
+  </main>
 
-    el.style.setProperty("--x", `${x}px`);
-    el.style.setProperty("--rot", `${rot}deg`);
-    el.style.setProperty("--over", `${over}px`);
-    el.style.setProperty("--b1", `${b1}px`);
-    el.style.setProperty("--b2", `${b2}px`);
-    el.style.setProperty("--b3", `${b3}px`);
-    el.style.setProperty("--lift", `0px`);
+  <script>
+    window.addEventListener("load", () => {
+      const el = document.getElementById("logo");
+      if (!el) return;
 
-    // --- 重播掉落 ---
-    el.classList.remove("is-landed");
-    el.classList.remove("logo-drop");
-    void el.offsetWidth;
-    el.classList.add("logo-drop");
+      const rand = (min, max) => Math.random() * (max - min) + min;
 
-    // 掉落結束 → 開放互動
-    const onAnimEnd = () => {
-      el.classList.add("is-landed");
-      el.removeEventListener("animationend", onAnimEnd);
-    };
-    el.addEventListener("animationend", onAnimEnd);
+      // --- 隨機參數 ---
+      const x = rand(-160, 160);
+      const rot = rand(6, 14) * (Math.random() < 0.5 ? -1 : 1) * -1;
+      const over = rand(16, 36);
+      const b1 = -rand(8, 20);
+      const b2 = rand(2, 10);
+      const b3 = -rand(1, 7);
 
-    // --- 互動參數 ---
-    const HIT = 110;      // 感應區高度：靠近畫面底部
-    const MAX_LIFT = 120; // 最高抬起高度
-    let lifting = false;
+      el.style.setProperty("--x", `${x}px`);
+      el.style.setProperty("--rot", `${rot}deg`);
+      el.style.setProperty("--over", `${over}px`);
+      el.style.setProperty("--b1", `${b1}px`);
+      el.style.setProperty("--b2", `${b2}px`);
+      el.style.setProperty("--b3", `${b3}px`);
+      el.style.setProperty("--lift", `0px`);
 
-    // 用彈簧式回彈（不用 el.animate 避免 transform 打架）
-    let y = 0;     // 當前 lift（負值=抬起）
-    let v = 0;     // 速度
-    let target = 0;
-    let raf = 0;
+      // --- 重播掉落 ---
+      el.classList.remove("is-landed");
+      el.classList.remove("logo-drop");
+      void el.offsetWidth;
+      el.classList.add("logo-drop");
 
-    function apply() {
-      el.style.setProperty("--lift", `${y}px`);
-    }
+      // 掉落結束 → 開放互動
+      const onAnimEnd = () => {
+        el.classList.add("is-landed");
+        el.removeEventListener("animationend", onAnimEnd);
+      };
+      el.addEventListener("animationend", onAnimEnd);
 
-    function tick() {
-      // 簡單彈簧：往 target 靠近 + 阻尼
-      const k = 0.12;   // 彈力（越大越硬）
-      const d = 0.78;   // 阻尼（越小越Q，越大越快停）
-      v = (v + (target - y) * k) * d;
-      y += v;
+      // --- 互動參數 ---
+      const HIT = 110;
+      const MAX_LIFT = 120;
+      let lifting = false;
 
-      // 收斂停止
-      if (Math.abs(v) < 0.05 && Math.abs(target - y) < 0.2) {
-        y = target;
-        v = 0;
-        apply();
-        raf = 0;
-        return;
+      let y = 0;
+      let v = 0;
+      let target = 0;
+      let raf = 0;
+
+      function apply() {
+        el.style.setProperty("--lift", `${y}px`);
       }
 
-      apply();
-      raf = requestAnimationFrame(tick);
-    }
+      function tick() {
+        const k = 0.12;
+        const d = 0.78;
+        v = (v + (target - y) * k) * d;
+        y += v;
 
-    function setTarget(next) {
-      target = next;
-      if (!raf) raf = requestAnimationFrame(tick);
-    }
+        if (Math.abs(v) < 0.05 && Math.abs(target - y) < 0.2) {
+          y = target;
+          v = 0;
+          apply();
+          raf = 0;
+          return;
+        }
 
-    // 感應區：在視窗底部 HIT px 內 + 在 logo 的 X 範圍內
-    function isHit(e) {
-      if (!el.classList.contains("is-landed")) return false;
+        apply();
+        raf = requestAnimationFrame(tick);
+      }
 
-      const rect = el.getBoundingClientRect();
-      const inX = e.clientX >= rect.left && e.clientX <= rect.right;
-      const inBottomOfViewport = e.clientY >= (window.innerHeight - HIT) && e.clientY <= window.innerHeight;
-      return inX && inBottomOfViewport;
-    }
+      function setTarget(next) {
+        target = next;
+        if (!raf) raf = requestAnimationFrame(tick);
+      }
 
-    function onMove(e) {
-      const hit = isHit(e);
+      function isHit(e) {
+        if (!el.classList.contains("is-landed")) return false;
 
-      if (hit) {
-        lifting = true;
+        const rect = el.getBoundingClientRect();
+        const inX = e.clientX >= rect.left && e.clientX <= rect.right;
+        const inBottom = e.clientY >= (window.innerHeight - HIT) && e.clientY <= window.innerHeight;
+        return inX && inBottom;
+      }
 
-        // 距離底部越近 → 抬越高（更像撬）
-        const depth = Math.max(0, Math.min(HIT, window.innerHeight - e.clientY)); // 0..HIT
-        const t = depth / HIT; // 0..1
-        const lift = -(20 + t * (MAX_LIFT - 20)); // -20..-MAX_LIFT
+      function onMove(e) {
+        const hit = isHit(e);
 
-        setTarget(lift);
-      } else {
-        if (lifting) {
-          lifting = false;
-          // 放手：目標回到 0（會自然掉落回彈）
-          setTarget(0);
+        if (hit) {
+          lifting = true;
+          const depth = Math.max(0, Math.min(HIT, window.innerHeight - e.clientY));
+          const t = depth / HIT;
+          const lift = -(20 + t * (MAX_LIFT - 20));
+          setTarget(lift);
+        } else {
+          if (lifting) {
+            lifting = false;
+            setTarget(0);
+          }
         }
       }
-    }
 
-    window.addEventListener("pointermove", onMove, { passive: true });
-  });
-</script>
+      window.addEventListener("pointermove", onMove, { passive: true });
+    });
+  </script>
+</body>
+</html>
