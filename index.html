@@ -8,119 +8,166 @@
 </head>
 
 <body>
-  <main class="landing">
+  <main class="landing" aria-label="liminalsynths landing">
 
+    <!-- 超大 logo -->
     <img id="logo" class="logo-drop" src="assets/logo.svg" alt="liminalsynths logo" />
 
-    <nav class="mini-nav">
-      <a class="mini-pill" href="#">about</a>
-      <a class="mini-pill" href="#">work</a>
-      <a class="mini-pill" href="#">contact</a>
+    <!-- 底部小連結（灰底黑字、置中直排） -->
+    <nav class="mini-nav" aria-label="site">
+      <a class="mini-pill" href="about.html">about</a>
+      <a class="mini-pill" href="work.html">work</a>
+      <a class="mini-pill" href="contact.html">contact</a>
       <span class="mini-pill is-text">by zhigiangchin</span>
     </nav>
 
   </main>
 
-<script>
-window.addEventListener("load", () => {
-  const el = document.getElementById("logo");
-  if (!el) return;
+  <script>
+  window.addEventListener("load", () => {
+    const el = document.getElementById("logo");
+    if (!el) return;
 
-  const rand = (min, max) => Math.random() * (max - min) + min;
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-  // 初始隨機傾斜與卡邊
-  const x = rand(-160, 160);
-  const rot = rand(6, 14) * (Math.random() < 0.5 ? -1 : 1) * -1;
+    // ✅ 初始：只給很小的基礎角度，避免「一開始就超怪」
+    const baseRot = rand(-2.2, 2.2);
+    // ✅ 卡邊：小幅左右偏移（但因為超大 width，本來就會裁切）
+    const x = rand(-60, 60);
 
-  el.style.setProperty("--x", `${x}px`);
-  el.style.setProperty("--rot", `${rot}deg`);
+    el.style.setProperty("--rot", `${baseRot}deg`);
+    el.style.setProperty("--x", `${x}px`);
 
-  // 強制重播掉落
-  el.classList.remove("logo-drop");
-  void el.offsetWidth;
-  el.classList.add("logo-drop");
+    // ✅ 掉落回彈參數（每次隨機一點點）
+    el.style.setProperty("--over", `${rand(14, 28)}px`);
+    el.style.setProperty("--b1", `${-rand(8, 18)}px`);
+    el.style.setProperty("--b2", `${rand(2, 10)}px`);
+    el.style.setProperty("--b3", `${-rand(1, 6)}px`);
 
-  el.addEventListener("animationend", function onEnd(){
-    el.classList.add("is-landed");
-    el.removeEventListener("animationend", onEnd);
-    startPhysics();
-  });
+    // 先清空互動狀態
+    el.style.setProperty("--lift", `-120vh`);
+    el.style.setProperty("--tilt", `0deg`);
 
-  function startPhysics(){
+    // 強制重播掉落動畫
+    el.classList.remove("is-landed");
+    el.classList.remove("logo-drop");
+    void el.offsetWidth;
+    el.classList.add("logo-drop");
 
-    let y = 0, vy = 0;
-    let a = 0, va = 0;
-    let ty = 0, ta = 0;
+    // 掉落結束 -> 進入可拖拽剛體模式
+    el.addEventListener("animationend", function onEnd(){
+      el.classList.add("is-landed");
+      el.removeEventListener("animationend", onEnd);
+      startRigidDrag();
+    });
 
-    let dragging = false;
-    let grabOffsetX = 0;
+    function startRigidDrag(){
+      // 物理狀態
+      let y = 0, vy = 0;       // lift (px, 負值往上)
+      let a = 0, va = 0;       // tilt (deg)
+      let ty = 0, ta = 0;      // target lift / target tilt
 
-    const kY = 0.14;
-    const dY = 0.78;
-    const kA = 0.10;
-    const dA = 0.74;
+      // 拖拽狀態
+      let dragging = false;
+      let grabDX = 0;          // 抓取點相對中心的 X（px）
+      let lastMoveAt = 0;
 
-    const maxLift = 220;
-    const maxTilt = 16;
+      // 手感（你想更重/更軟我再幫你調）
+      const maxLift = 520;     // ✅ 最高抬起（讓你可以抬很高）
+      const maxTilt = 22;      // ✅ 最大傾斜角（更像撥）
+      const kY = 0.16;         // 彈力（越大越硬）
+      const dY = 0.78;         // 阻尼（越小越Q）
+      const kA = 0.12;
+      const dA = 0.72;
 
-    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+      function apply(){
+        el.style.setProperty("--lift", `${y}px`);
+        el.style.setProperty("--tilt", `${a}deg`);
+      }
 
-    function apply(){
-      el.style.setProperty("--lift", `${y}px`);
-      el.style.setProperty("--tilt", `${a}deg`);
-    }
+      function step(){
+        // spring -> target
+        vy = (vy + (ty - y) * kY) * dY;
+        y += vy;
 
-    function tick(){
-      vy = (vy + (ty - y) * kY) * dY;
-      y += vy;
+        va = (va + (ta - a) * kA) * dA;
+        a += va;
 
-      va = (va + (ta - a) * kA) * dA;
-      a += va;
+        // 地面約束：不能往下穿（y > 0）
+        if (y > 0) { y = 0; vy *= -0.28; }
 
-      if (y > 0){ y = 0; vy *= -0.35; }
+        // 收斂時微調到位（避免永遠抖）
+        if (!dragging && Math.abs(vy) < 0.03 && Math.abs(y) < 0.15) { y = 0; vy = 0; }
+        if (!dragging && Math.abs(va) < 0.02 && Math.abs(a) < 0.08) { a = 0; va = 0; }
 
-      apply();
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+        apply();
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
 
-    function hitTest(e){
-      const r = el.getBoundingClientRect();
-      return e.clientX >= r.left && e.clientX <= r.right &&
-             e.clientY >= r.top && e.clientY <= r.bottom;
-    }
+      function rect(){ return el.getBoundingClientRect(); }
 
-    function onDown(e){
-      if (!hitTest(e)) return;
-      dragging = true;
-      const r = el.getBoundingClientRect();
-      grabOffsetX = (e.clientX - (r.left + r.right)/2) / (r.width/2);
-      e.preventDefault();
-    }
+      // ✅ Hit test：即使 pointer-events:none 也能抓到（我們用 rect 判斷）
+      function hitTest(e){
+        const r = rect();
+        return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      }
 
-    function onMove(e){
-      if (!dragging) return;
+      function onDown(e){
+        if (!el.classList.contains("is-landed")) return;
+        if (!hitTest(e)) return;
 
-      const lift = -clamp((window.innerHeight - e.clientY) * 0.9, 0, maxLift);
-      ty = lift;
+        const r = rect();
+        const cx = (r.left + r.right) / 2;
 
-      ta = clamp(grabOffsetX * maxTilt, -maxTilt, maxTilt);
-    }
+        dragging = true;
+        el.classList.add("is-grabbed");
 
-    function onUp(){
-      if (!dragging) return;
-      dragging = false;
-      ty = 0;
-      ta = 0;
-    }
+        // ✅ 你抓哪裡，就用那個點當「力臂」
+        grabDX = e.clientX - cx; // px
 
-    window.addEventListener("pointerdown", onDown);
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-  }
-});
-</script>
+        // 立刻更新一次 target（避免點下去不動）
+        computeTargets(e);
 
-</body>
-</html>
+        e.preventDefault?.();
+      }
+
+      function computeTargets(e){
+        const r = rect();
+        const cx = (r.left + r.right) / 2;
+
+        // 目標角度：由滑鼠相對中心的水平位置決定（像撥動）
+        const tTilt = clamp(((e.clientX - cx) / (r.width / 2)) * maxTilt, -maxTilt, maxTilt);
+
+        // ✅ 目標抬起：讓「你抓住的那個點」更貼近你的滑鼠高度
+        // 近似剛體：抓取點的垂直位移 ≈ lift - angle(rad) * grabDX
+        const rad = (tTilt * Math.PI) / 180;
+        const desired = e.clientY - window.innerHeight; // 你滑鼠相對地板的高度（負值=往上）
+        let tLift = desired + (rad * grabDX);
+
+        // 限制範圍：最多抬起 maxLift，不能往下壓
+        tLift = clamp(tLift, -maxLift, 0);
+
+        ty = tLift;
+        ta = tTilt;
+
+        lastMoveAt = performance.now();
+      }
+
+      function onMove(e){
+        if (!dragging) return;
+        computeTargets(e);
+      }
+
+      function onUp(){
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove("is-grabbed");
+
+        // 放手：回到地面（0）與水平（0）
+        ty = 0;
+        ta = 0;
+      }
+
+      window.
