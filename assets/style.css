@@ -69,3 +69,14 @@ body{
   97%  { transform: translate(calc(-50% + var(--x)), var(--b3))  rotate(var(--rot)); }
   100% { transform: translate(calc(-50% + var(--x)), 0px)        rotate(var(--rot)); }
 }
+
+/* 落地後，讓 logo 進入可互動狀態（用 --lift 抬起） */
+.logo-drop.is-landed{
+  animation: none; /* 停止掉落動畫，保持在底部 */
+  transform: translate(calc(-50% + var(--x)), calc(0px + var(--lift, 0px))) rotate(var(--rot));
+  transition: transform 120ms linear;
+}
+
+/* 避免滑鼠事件被 svg 內部吃掉 */
+.logo-drop{ pointer-events: none; }
+
