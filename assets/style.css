@@ -73,3 +73,36 @@ body{
 /* 避免滑鼠事件被 svg 內部吃掉 */
 .logo-drop{ pointer-events: none; }
 
+.mini-nav{
+  position: absolute;
+  left: 50%;
+  bottom: 140px;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  opacity: 0;
+  animation: miniIn 380ms ease 980ms forwards;
+}
+
+.mini-pill{
+  display: inline-block;
+  background: var(--pill);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-decoration: underline;
+}
+
+.mini-pill.is-text{
+  text-decoration: none;
+  cursor: default;
+}
+
+@keyframes miniIn{
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
