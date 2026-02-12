@@ -13,65 +13,58 @@
 }
 
 *{ box-sizing: border-box; }
-html,body{ height:100%; }
-body{
+
+html,body{
+  height:100%;
   margin:0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
-/* 16:9 視覺邏輯：不強迫改 viewport 比例，但你的設計會以 16:9 的底部著地感去做 */
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: "NeueMetanaNext", ui-sans-serif, system-ui;
+}
+
 .landing{
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  background: var(--bg);
 }
 
-/* Logo：超大、卡邊、傾斜（由 JS 隨機決定角度與左右偏移） */
 .logo-drop{
   position: absolute;
   left: 50%;
   bottom: 0;
 
-  /* ✅ 超大到會卡邊（你要的） */
   width: min(2200px, 165vw);
   height: auto;
 
-  /* 隨機參數（JS 會塞值） */
-  --x: 0px;          /* 左右位移 */
-  --rot: -8deg;      /* 傾斜角度 */
-  --over: 22px;      /* 落地過衝 */
-  --b1: -10px;       /* 第一次回彈高度 */
-  --b2: 6px;         /* 第二次回彈下壓 */
-  --b3: -4px;        /* 第三次小回彈 */
+  --x: 0px;
+  --rot: -8deg;
+  --lift: 0px;
+  --tilt: 0deg;
 
-  transform-origin: 50% 100%; /* 以底部為旋轉中心，更像「卡住」 */
-  transform: translate(calc(-50% + var(--x)), -120vh) rotate(var(--rot));
-  animation: dropHard 950ms cubic-bezier(.18, .92, .2, 1) 60ms forwards;
-  will-change: transform;
+  transform-origin: 50% 100%;
+  transform:
+    translate(calc(-50% + var(--x)), var(--lift))
+    rotate(calc(var(--rot) + var(--tilt)));
+
+  animation: dropHard 900ms cubic-bezier(.18,.92,.2,1) forwards;
+
+  filter: drop-shadow(0px 10px 20px rgba(0,0,0,.12));
+  user-select: none;
+  pointer-events: none;
 }
 
-/* ✅ 隨機硬度回彈（幅度由 CSS 變數控制） */
-@keyframes dropHard{
-  0%   { transform: translate(calc(-50% + var(--x)), -130vh) rotate(var(--rot)); }
-  72%  { transform: translate(calc(-50% + var(--x)), var(--over)) rotate(var(--rot)); }
-  84%  { transform: translate(calc(-50% + var(--x)), var(--b1))  rotate(var(--rot)); }
-  92%  { transform: translate(calc(-50% + var(--x)), var(--b2))  rotate(var(--rot)); }
-  97%  { transform: translate(calc(-50% + var(--x)), var(--b3))  rotate(var(--rot)); }
-  100% { transform: translate(calc(-50% + var(--x)), 0px)        rotate(var(--rot)); }
-}
-
-/* 落地後，讓 logo 進入可互動狀態（用 --lift 抬起） */
 .logo-drop.is-landed{
-  animation: none; /* 停止掉落動畫，保持在底部 */
-  transform: translate(calc(-50% + var(--x)), calc(0px + var(--lift, 0px))) rotate(var(--rot));
-  transition: transform 120ms linear;
+  animation: none;
 }
 
-/* 避免滑鼠事件被 svg 內部吃掉 */
-.logo-drop{ pointer-events: none; }
+@keyframes dropHard{
+  0%   { transform: translate(calc(-50% + var(--x)), -120vh) rotate(var(--rot)); }
+  80%  { transform: translate(calc(-50% + var(--x)), 20px) rotate(var(--rot)); }
+  100% { transform: translate(calc(-50% + var(--x)), 0px) rotate(var(--rot)); }
+}
 
 .mini-nav{
   position: absolute;
@@ -81,16 +74,12 @@ body{
   display: grid;
   gap: 10px;
   justify-items: center;
-  opacity: 0;
-  animation: miniIn 380ms ease 980ms forwards;
 }
 
 .mini-pill{
-  display: inline-block;
   background: var(--pill);
   color: var(--text);
   font-size: 14px;
-  line-height: 1;
   padding: 2px 6px;
   border-radius: 3px;
   text-decoration: underline;
@@ -98,11 +87,4 @@ body{
 
 .mini-pill.is-text{
   text-decoration: none;
-  cursor: default;
 }
-
-@keyframes miniIn{
-  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
