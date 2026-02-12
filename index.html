@@ -9,16 +9,45 @@
 
 <body>
   <main class="landing" aria-label="liminalsynths landing">
-    <!-- 掉落的巨大 Logo（SVG） -->
-    <img class="logo-drop" src="assets/logo.svg" alt="liminalsynths logo" />
 
-    <!-- 底下小連結（灰底黑字、排列跟你截圖一樣：直排置中） -->
+    <img id="logo" class="logo-drop" src="assets/logo.svg" alt="liminalsynths logo" />
+
     <nav class="mini-nav" aria-label="site">
       <a class="mini-pill" href="about.html">about</a>
       <a class="mini-pill" href="work.html">work</a>
       <a class="mini-pill" href="contact.html">contact</a>
       <span class="mini-pill is-text">by zhigiangchin</span>
     </nav>
+
   </main>
+
+  <!-- 🔥 加在這裡 -->
+  <script>
+    window.addEventListener("load", () => {
+      const el = document.getElementById("logo");
+      if (!el) return;
+
+      const rand = (min, max) => Math.random() * (max - min) + min;
+
+      const x = rand(-140, 140);
+      const rot = rand(-14, -6) * (Math.random() < 0.5 ? 1 : -1);
+      const over = rand(14, 34);
+      const b1 = -rand(6, 18);
+      const b2 = rand(2, 10);
+      const b3 = -rand(1, 7);
+
+      el.style.setProperty("--x", `${x}px`);
+      el.style.setProperty("--rot", `${rot}deg`);
+      el.style.setProperty("--over", `${over}px`);
+      el.style.setProperty("--b1", `${b1}px`);
+      el.style.setProperty("--b2", `${b2}px`);
+      el.style.setProperty("--b3", `${b3}px`);
+
+      el.classList.remove("logo-drop");
+      void el.offsetWidth;
+      el.classList.add("logo-drop");
+    });
+  </script>
+
 </body>
 </html>
