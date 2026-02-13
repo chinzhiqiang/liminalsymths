@@ -60,9 +60,11 @@ body{
   left:50%;
   bottom:0;
 
-  /* ✅ 這裡是「太大/太小」的總開關 */
-  width: min(2800px, 165vw);
-  height:auto;
+  /* ✅ 改這裡：尺寸跟視窗高度走（穩、自然、一定卡邊） */
+  width: auto;
+  height: 88vh;      /* 想更卡邊就改成 92vh / 95vh */
+  max-height: 92vh;  /* 保護：避免極端螢幕太爆 */
+  min-height: 60vh;  /* 保護：避免極小螢幕太小 */
 
   --x: 0px;
   --rot: 0deg;
@@ -90,11 +92,11 @@ body{
 
   animation: dropHard 920ms cubic-bezier(.18,.92,.2,1) 60ms forwards;
 
-  /* 我們用 rect hit test，不靠它直接吃事件 */
   pointer-events:none;
-
   z-index: 2;
 }
+
+
 
 .logo-drop.is-landed{
   animation:none;
