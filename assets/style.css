@@ -1,148 +1,180 @@
 @font-face{
-  font-family: "NeueMetanaNext";
-  src: url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
+  font-family:"NeueMetanaNext";
+  src:url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
+  font-weight:600;
+  font-style:normal;
+  font-display:swap;
 }
 
 :root{
-  --bg: #ffffff;
-  --text: #111;
-  --pill: #D9D9D9;
+  --bg:#ffffff;
+  --text:#111;
+  --pill:#d9d9d9;
 
-  --frame: 18px;
-  --frameRadius: 18px;
+  --pad:48px;
+  --gap:42px;
+
+  --leftW: 26vw;
+  --rightW: 28vw;
+
+  --radius:18px;
+  --shadow: 0px 18px 40px rgba(0,0,0,.08);
 }
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
 body{
   margin:0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
-/* 外層盒子 */
-.landing{
-  position: relative;
-  min-height: 100vh;
-  padding: var(--frame);
-  background: var(--bg);
-}
-
-/* 盒壁 + 立體感 */
-.landing::before{
-  content:"";
-  position:absolute;
-  inset: var(--frame);
-  border-radius: var(--frameRadius);
-  border: 1px solid rgba(0,0,0,.10);
-  box-shadow:
-    inset 0 0 0 10px rgba(0,0,0,.02),
-    inset 0 18px 32px rgba(0,0,0,.05);
-  pointer-events:none;
-  z-index: 10;
-}
-
-/* 盒子內舞台（裁切只發生在這裡） */
-.stage{
-  position:absolute;
-  inset: var(--frame);
-  border-radius: var(--frameRadius);
-  overflow: visible;
-}
-
-/* ✅ 鑰匙（logo）大小：這版縮小很多，但仍會卡邊 */
-.logo-drop{
-  position:absolute;
-  left: 58%;
-  bottom: 6vh;
-
-  /* ✅ 完整露出：自動縮放到容器內 */
-  width: min(92vw, 1300px);
-  max-width: 92vw;
-  height: auto;
-  max-height: 82vh;
-  object-fit: contain;
-
-  --x: 0px;
-  --rot: 0deg;
-  --lift: -120vh;
-  --tilt: 0deg;
-
-  --over: 18px;
-  --b1: -10px;
-  --b2: 6px;
-  --b3: -4px;
-
-  transform-origin: 50% 100%;
-  transform:
-    translate(calc(-50% + var(--x)), var(--lift))
-    rotate(calc(var(--rot) + var(--tilt)));
-
-  will-change: transform;
-  user-select:none;
-  -webkit-user-drag:none;
-  backface-visibility:hidden;
-
-  filter:
-    drop-shadow(0px 16px 22px rgba(0,0,0,.12))
-    drop-shadow(0px 44px 80px rgba(0,0,0,.08));
-
-  animation: dropHard 920ms cubic-bezier(.18,.92,.2,1) 60ms forwards;
-
-  pointer-events:none;
-  z-index: 2;
-}
-
-
-
-.logo-drop.is-landed{
-  animation:none;
-}
-
-@keyframes dropHard{
-  0%   { transform: translate(calc(-50% + var(--x)), -130vh) rotate(var(--rot)); }
-  72%  { transform: translate(calc(-50% + var(--x)), var(--over)) rotate(var(--rot)); }
-  84%  { transform: translate(calc(-50% + var(--x)), var(--b1))  rotate(var(--rot)); }
-  92%  { transform: translate(calc(-50% + var(--x)), var(--b2))  rotate(var(--rot)); }
-  97%  { transform: translate(calc(-50% + var(--x)), var(--b3))  rotate(var(--rot)); }
-  100% { transform: translate(calc(-50% + var(--x)), 0px)        rotate(var(--rot)); }
-}
-
-/* 抓/hover 時陰影更浮 */
-.logo-drop.is-grabbed{
-  filter:
-    drop-shadow(0px 22px 26px rgba(0,0,0,.16))
-    drop-shadow(0px 70px 110px rgba(0,0,0,.10));
-}
-
-/* 小連結：永遠在鑰匙上方 */
-.mini-nav{
-  position:absolute;
-  left:50%;
-  bottom: 110px;
-  transform: translateX(-50%);
+.page{
+  position:relative;
+  min-height:100vh;
   display:grid;
-  gap:10px;
-  justify-items:center;
-  z-index: 9;
+  grid-template-columns: var(--leftW) 1fr var(--rightW);
+  gap: var(--gap);
+  padding: var(--pad);
+  overflow:hidden;
 }
 
-.mini-pill{
-  display:inline-block;
-  background: var(--pill);
+/* 左右固定 */
+.left,.right{
+  position:relative;
+  z-index:2;
+}
+.left{
+  display:flex;
+  align-items:center;
+}
+.brand-logo{
+  width: min(520px, 92%);
+  height:auto;
+  transform: translateY(14vh);
+  transition: transform 520ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+  will-change: transform, opacity;
+}
+
+/* 右側文字 */
+.right .info{
+  max-width: 360px;
+  margin-left:auto;
+  padding-top: 22vh;
+}
+.title{ margin:0 0 10px 0; font-size:16px; }
+.body{ margin:0; line-height:1.55; font-size:15px; }
+.meta{ margin:34px 0 0 0; font-size:14px; }
+.contact{ margin:54px 0 0 0; font-size:14px; }
+
+/* 中間作品軌道 */
+.center{
+  position:relative;
+  z-index:1;
+  min-height: calc(100vh - var(--pad)*2);
+  display:flex;
+  align-items:center;
+}
+.rail{
+  display:flex;
+  gap: 28px;
+  align-items:center;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type: x mandatory;
+  padding: 12px 10px 12px 10px;
+  width:100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar{ display:none; }
+
+.card{
+  flex: 0 0 auto;
+  width: min(520px, 42vw);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: #d9d9d9;
+  position:relative;
+  box-shadow: var(--shadow);
+  overflow:hidden;
+  scroll-snap-align: center;
+  cursor: pointer;
+  transform: translateZ(0);
+}
+.card .num{
+  position:absolute;
+  right:-28px;
+  top:-10px;
+  font-size:14px;
+}
+.card .thumb{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter: saturate(1.02) contrast(1.02);
+  transform: scale(1.001);
+}
+
+/* Back 按鈕 */
+.back{
+  position:absolute;
+  right: var(--pad);
+  top: var(--pad);
+  z-index:5;
+  background: transparent;
+  border: none;
+  font: inherit;
   color: var(--text);
-  font-size: 14px;
-  line-height:1;
-  padding: 2px 6px;
-  border-radius: 3px;
   text-decoration: underline;
+  cursor: pointer;
+  opacity:0;
+  pointer-events:none;
+  transform: translateY(-6px);
+  transition: opacity 240ms ease, transform 240ms ease;
 }
 
-.mini-pill.is-text{
-  text-decoration:none;
-  cursor:default;
+/* focus overlay (放大後的圖) */
+.focus{
+  position:absolute;
+  inset:0;
+  z-index:4;
+  pointer-events:none;
+}
+.focus .focus-img{
+  position:absolute;
+  left: var(--pad);
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(560px, calc(var(--leftW) + 14vw));
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  overflow:hidden;
+  box-shadow: 0px 28px 70px rgba(0,0,0,.12);
+  background:#ddd;
+}
+.focus .focus-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* 進入作品詳情狀態 */
+.page.is-detail .brand-logo{
+  transform: translate(-120%, 14vh);
+  opacity:0;
+}
+.page.is-detail .back{
+  opacity:1;
+  pointer-events:auto;
+  transform: translateY(0);
+}
+
+/* 讓右側文字 scramble 時看起來更像「跳動」 */
+.scramble{
+  display:inline-block;
+  will-change: contents;
 }
