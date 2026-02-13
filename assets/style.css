@@ -51,20 +51,21 @@ body{
   position:absolute;
   inset: var(--frame);
   border-radius: var(--frameRadius);
-  overflow:hidden;
+  overflow: visible;
 }
 
 /* ✅ 鑰匙（logo）大小：這版縮小很多，但仍會卡邊 */
 .logo-drop{
   position:absolute;
-  left:50%;
-  bottom:0;
+  left: 58%;
+  bottom: 6vh;
 
-  /* ✅ 改這裡：尺寸跟視窗高度走（穩、自然、一定卡邊） */
-  width: auto;
-  height: 88vh;      /* 想更卡邊就改成 92vh / 95vh */
-  max-height: 92vh;  /* 保護：避免極端螢幕太爆 */
-  min-height: 60vh;  /* 保護：避免極小螢幕太小 */
+  /* ✅ 完整露出：自動縮放到容器內 */
+  width: min(92vw, 1300px);
+  max-width: 92vw;
+  height: auto;
+  max-height: 82vh;
+  object-fit: contain;
 
   --x: 0px;
   --rot: 0deg;
