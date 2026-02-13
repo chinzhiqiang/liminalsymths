@@ -10,9 +10,13 @@
   --bg: #ffffff;
   --text: #111;
   --pill: #D9D9D9;
+
+  /* 盒子參數 */
+  --frame: 22px;          /* 盒壁厚度 */
+  --frameRadius: 18px;    /* 盒子圓角 */
 }
 
-*{ box-sizing: border-box; }
+*{ box-sizing:border-box; }
 html,body{ height:100%; }
 body{
   margin:0;
@@ -21,17 +25,135 @@ body{
   font-family: "NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
+/* ✅ 盒子：整個視窗就是一個框（內有裁切區） */
 .landing{
   position: relative;
   min-height: 100vh;
-  overflow: hidden; /* ✅ 卡邊裁切 */
+
+  /* 盒子外框 */
+  padding: var(--frame);
   background: var(--bg);
+
+  /* 讓內容在盒子內裁切 */
+  overflow: hidden;
 }
 
-/* ✅ 超大 Logo：卡邊、落地、可被撥動（剛體） */
+/* ✅ 盒子內層（用偽元素做出“盒壁”立體感） */
+.landing::before{
+  content:"";
+  position:absolute;
+  inset: 0;
+  border-radius: var(--frameRadius);
+
+  /* 盒壁 */
+  border: 1px solid rgba(0,0,0,.10);
+
+  /* 內陰影 -> 像盒子 */
+  box-shadow:
+    inset 0 0 0 var(--frame) rgba(0,0,0,.03),
+    inset 0 18px 32px rgba(0,0,0,.05);
+
+  pointer-events:none;
+  z-index: 10;
+}
+
+/* ✅ 盒子內的“工作空間” */
+.stage{
+  position: absolute;
+  inset: var(--frame);
+  border-radius: calc(var(--frameRadius) - 2px);
+  overflow: hidden; /* 讓鑰匙一定卡在盒子內 */
+}
+
+/* ✅ 超大 Logo：在盒子內被裁切 = 卡住的鑰匙 */
 .logo-drop{
   position: absolute;
   left: 50%;
   bottom: 0;
 
-  /* ✅ 這個是你要的「大到卡邊」核心 */
+  /* ✅ 大到一定會卡邊（像鑰匙塞進盒子） */
+  width: min(3800px, 220vw);
+  height: auto;
+
+  --x: 0px;
+  --rot: 0deg;
+  --lift: -120vh;
+  --tilt: 0deg;
+
+  --over: 22px;
+  --b1: -10px;
+  --b2: 6px;
+  --b3: -4px;
+
+  transform-origin: 50% 100%;
+  transform:
+    translate(calc(-50% + var(--x)), var(--lift))
+    rotate(calc(var(--rot) + var(--tilt)));
+
+  will-change: transform;
+  backface-visibility: hidden;
+  user-select:none;
+  -webkit-user-drag:none;
+
+  /* ✅ 鑰匙的“厚度感” */
+  filter:
+    drop-shadow(0px 16px 22px rgba(0,0,0,.12))
+    drop-shadow(0px 36px 60px rgba(0,0,0,.08));
+
+  /* 掉落 */
+  animation: dropHard 920ms cubic-bezier(.18,.92,.2,1) 60ms forwards;
+
+  /* 我們用 rect hit test，不靠直接 pointer */
+  pointer-events:none;
+
+  z-index: 2;
+}
+
+.logo-drop.is-landed{
+  animation:none;
+}
+
+/* 掉落回彈 */
+@keyframes dropHard{
+  0%   { transform: translate(calc(-50% + var(--x)), -130vh) rotate(var(--rot)); }
+  72%  { transform: translate(calc(-50% + var(--x)), var(--over)) rotate(var(--rot)); }
+  84%  { transform: translate(calc(-50% + var(--x)), var(--b1))  rotate(var(--rot)); }
+  92%  { transform: translate(calc(-50% + var(--x)), var(--b2))  rotate(var(--rot)); }
+  97%  { transform: translate(calc(-50% + var(--x)), var(--b3))  rotate(var(--rot)); }
+  100% { transform: translate(calc(-50% + var(--x)), 0px)        rotate(var(--rot)); }
+}
+
+/* ✅ 抓住時：陰影更浮起，像鑰匙被撬起 */
+.logo-drop.is-grabbed{
+  filter:
+    drop-shadow(0px 22px 26px rgba(0,0,0,.16))
+    drop-shadow(0px 60px 90px rgba(0,0,0,.10));
+}
+
+/* ✅ 小連結：固定在盒子內的某個位置，不要被鑰匙壓住 */
+.mini-nav{
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--frame) + 110px);
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  z-index: 9; /* 比鑰匙高，永遠在上面 */
+}
+
+.mini-pill{
+  display:inline-block;
+  background: var(--pill);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-decoration: underline;
+}
+
+.mini-pill.is-text{
+  text-decoration: none;
+  cursor: default;
+}
