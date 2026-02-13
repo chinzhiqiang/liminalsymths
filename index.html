@@ -8,194 +8,49 @@
 </head>
 
 <body>
-  <main class="landing" aria-label="liminalsynths landing">
-    <div class="stage">
-      <img id="logo" class="logo-drop" src="assets/logo.svg" alt="liminalsynths logo" />
+  <main class="page" id="page">
+    <!-- 左側固定 Logo -->
+    <aside class="left" id="left">
+      <img class="brand-logo" src="assets/logo.svg" alt="liminalsynths logo" />
+    </aside>
 
-      <nav class="mini-nav" aria-label="site">
-        <a class="mini-pill" href="about.html">about</a>
-        <a class="mini-pill" href="work.html">work</a>
-        <a class="mini-pill" href="contact.html">contact</a>
-        <span class="mini-pill is-text">by zhigiangchin</span>
-      </nav>
-    </div>
+    <!-- 中間可滑動作品列 -->
+    <section class="center" aria-label="works">
+      <div class="rail" id="rail">
+        <!-- 卡片由 JS 生成 -->
+      </div>
+    </section>
+
+    <!-- 右側固定資訊 -->
+    <aside class="right" id="right">
+      <div class="info" aria-live="polite">
+        <p class="title" id="infoTitle">liminalsynths</p>
+        <p class="body" id="infoBody">
+          signifies a synthesis in transition.<br>
+          where liminal states meet synths of<br>
+          form and thought.<br>
+          It captures the generative tension<br>
+          between concepts and mediums,<br>
+          manifesting in works that explore<br>
+          thresholds and hybridities.
+        </p>
+
+        <p class="meta" id="infoMeta">by zhiqiangchin</p>
+
+        <p class="contact" id="infoContact">
+          liminalsynths@gmail.com<br>
+          @liminalsynths
+        </p>
+      </div>
+    </aside>
+
+    <!-- 右上 Back -->
+    <button class="back" id="backBtn" type="button" aria-label="Back">back</button>
+
+    <!-- 放大用的 overlay（點作品時把圖搬到這裡） -->
+    <div class="focus" id="focus" aria-hidden="true"></div>
   </main>
 
-  <script>
-  window.addEventListener("load", () => {
-    const el = document.getElementById("logo");
-    if (!el) return;
-
-    const rand = (min, max) => Math.random() * (max - min) + min;
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-    // 初始：微角度 + 微偏移（不要怪）
-    const baseRot = rand(-1.8, 1.8);
-    const x = rand(-80, 80);
-
-    el.style.setProperty("--rot", `${baseRot}deg`);
-    el.style.setProperty("--x", `${x}px`);
-
-    // 掉落回彈（些微隨機）
-    el.style.setProperty("--over", `${rand(12, 22)}px`);
-    el.style.setProperty("--b1", `${-rand(6, 14)}px`);
-    el.style.setProperty("--b2", `${rand(2, 8)}px`);
-    el.style.setProperty("--b3", `${-rand(1, 5)}px`);
-
-    // 強制重播掉落
-    el.classList.remove("is-landed");
-    el.classList.remove("logo-drop");
-    void el.offsetWidth;
-    el.classList.add("logo-drop");
-
-    el.addEventListener("animationend", function onEnd(){
-      el.classList.add("is-landed");
-      el.removeEventListener("animationend", onEnd);
-      startKeyPhysics();
-    });
-
-    function startKeyPhysics(){
-      // 物理狀態
-      let y = 0, vy = 0;     // lift(px), 負值往上
-      let a = 0, va = 0;     // tilt(deg)
-      let ty = 0, ta = 0;    // target lift/tilt
-
-      // 拖拽狀態
-      let dragging = false;
-      let grabDX = 0;
-
-      // Hover 狀態
-      let hovering = false;
-
-      // 手感（你要更重/更硬我再幫你調）
-      const maxLift = 240;   // hover 時最高抬起
-      const maxTilt = 14;    // hover 時最大傾斜
-      const dragLift = 520;  // drag 時最高抬起
-      const dragTilt = 20;   // drag 時最大傾斜
-
-      const kY = 0.16, dY = 0.78;
-      const kA = 0.12, dA = 0.72;
-
-      function apply(){
-        el.style.setProperty("--lift", `${y}px`);
-        el.style.setProperty("--tilt", `${a}deg`);
-      }
-
-      function step(){
-        vy = (vy + (ty - y) * kY) * dY;
-        y += vy;
-
-        va = (va + (ta - a) * kA) * dA;
-        a += va;
-
-        // 地板：不能往下穿
-        if (y > 0) { y = 0; vy *= -0.28; }
-
-        // 收斂
-        if (!dragging && !hovering && Math.abs(vy) < 0.03 && Math.abs(y) < 0.15) { y = 0; vy = 0; }
-        if (!dragging && !hovering && Math.abs(va) < 0.02 && Math.abs(a) < 0.08) { a = 0; va = 0; }
-
-        apply();
-        requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-
-      function rect(){ return el.getBoundingClientRect(); }
-
-      function hitTest(e){
-        const r = rect();
-        return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-      }
-
-      // ✅ Hover：滑鼠經過就撬起（不用按）
-      function onHoverMove(e){
-        if (!el.classList.contains("is-landed")) return;
-        if (dragging) return;
-
-        const r = rect();
-        const inside = hitTest(e);
-
-        if (!inside){
-          if (hovering){
-            hovering = false;
-            ty = 0; ta = 0;
-            el.classList.remove("is-grabbed");
-          }
-          return;
-        }
-
-        hovering = true;
-        el.classList.add("is-grabbed");
-
-        const cx = (r.left + r.right) / 2;
-        const nx = (e.clientX - cx) / (r.width / 2); // -1..1
-        const tTilt = clamp(nx * maxTilt, -maxTilt, maxTilt);
-
-        // 越靠近底部越撬（像撥鑰匙）
-        const ny = (r.bottom - e.clientY) / Math.max(1, r.height); // 0..1 (底部=0)
-        const lift = -clamp((1 - ny) * maxLift, 18, maxLift);
-
-        ty = lift;
-        ta = tTilt;
-      }
-
-      // ✅ Drag：按住抓哪裡就用哪裡當力臂
-      function onDown(e){
-        if (!el.classList.contains("is-landed")) return;
-        if (!hitTest(e)) return;
-
-        const r = rect();
-        const cx = (r.left + r.right) / 2;
-
-        dragging = true;
-        hovering = false;
-        el.classList.add("is-grabbed");
-
-        grabDX = e.clientX - cx; // px
-        computeDragTargets(e);
-        e.preventDefault?.();
-      }
-
-      function computeDragTargets(e){
-        const r = rect();
-        const cx = (r.left + r.right) / 2;
-
-        const nx = (e.clientX - cx) / (r.width / 2);
-        const tTilt = clamp(nx * dragTilt, -dragTilt, dragTilt);
-
-        // 近似剛體：抓取點跟著滑鼠高度
-        const rad = (tTilt * Math.PI) / 180;
-        const desired = e.clientY - window.innerHeight; // 負值=往上
-        let tLift = desired + (rad * grabDX);
-
-        tLift = clamp(tLift, -dragLift, 0);
-
-        ty = tLift;
-        ta = tTilt;
-      }
-
-      function onMove(e){
-        if (!dragging) {
-          onHoverMove(e);
-          return;
-        }
-        computeDragTargets(e);
-      }
-
-      function onUp(){
-        if (!dragging) return;
-        dragging = false;
-        el.classList.remove("is-grabbed");
-        ty = 0;
-        ta = 0;
-      }
-
-      window.addEventListener("pointerdown", onDown, { passive: false });
-      window.addEventListener("pointermove", onMove, { passive: true });
-      window.addEventListener("pointerup", onUp, { passive: true });
-      window.addEventListener("pointercancel", onUp, { passive: true });
-    }
-  });
-  </script>
+  <script src="assets/main.js"></script>
 </body>
 </html>
