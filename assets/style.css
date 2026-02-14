@@ -1,17 +1,17 @@
 /* 1. Logo 放大三倍並垂直置中 */
 .left {
   display: flex;
-  align-items: center; /* 垂直置中 */
-  justify-content: flex-start;
-  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.4s;
+  align-items: center; /* 核心：垂直置中 */
+  justify-content: center;
+  transition: transform 0.7s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.4s;
 }
 
 .brand-logo {
-  width: 300px; /* 原本約 100px，放大三倍 */
+  width: 300px; /* 放大三倍 */
   height: auto;
 }
 
-/* 2. 數字標碼放在圖片右上角，平行頂端 */
+/* 2. 數字標碼放在圖片右上角 */
 .card {
   position: relative;
   height: 70vh;
@@ -24,36 +24,29 @@
 .card-num {
   position: absolute;
   top: 0;
-  right: -30px; /* 稍微往右偏一點點避免擋到圖，若要完全貼合請設為 0 */
-  font-size: 14px;
-  font-family: var(--font-main);
+  right: 0;
+  font-size: 12px;
+  line-height: 1;
 }
 
 /* 3. 右方資訊垂直置中 + 字級縮小兩倍 */
 .right {
   display: flex;
-  align-items: center; /* 垂直置中 */
-  justify-content: flex-start;
+  align-items: center; /* 核心：垂直置中 */
 }
 
 .info {
-  font-size: 7.5px; /* 原本約 15px，縮小兩倍 */
+  font-size: 7.5px; /* 縮小兩倍 (假設原 15px) */
   line-height: 1.6;
 }
 
-.info-title {
-  font-size: 8px; /* 標題同步縮小 */
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
-
-/* 4. 點擊後 Detail 狀態：左方文字資訊也要置中且小字 */
-.page.is-detail .left {
-  transform: translateX(-150%); /* 確保 Logo 飛出畫面外 */
-  opacity: 0;
-}
-
-/* 隱藏正在被點擊的原始圖片，避免重疊 */
-.card.is-active img {
+/* 防止動畫時圖片重疊 */
+.card.is-hidden img {
   visibility: hidden;
+}
+
+/* 4. 點擊後 Detail 狀態 */
+.page.is-detail .left {
+  transform: translateX(-150%); /* Logo 向左徹底滑出 */
+  opacity: 0;
 }
