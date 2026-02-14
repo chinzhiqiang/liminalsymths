@@ -7,18 +7,22 @@
 }
 
 :root{
-  --bg:#ffffff;
+  --bg:#f3f3f3;         /* 附圖的淡灰底感 */
+  --paper:#ffffff;      /* 版心白色 */
   --text:#111;
-  --pill:#d9d9d9;
+  --muted:#8a8a8a;
+  --ph:#d9d9d9;
 
-  --pad:48px;
-  --gap:42px;
+  --pad:56px;
+  --gap:44px;
 
   --leftW: 26vw;
   --rightW: 28vw;
 
   --radius:18px;
-  --shadow: 0px 18px 40px rgba(0,0,0,.08);
+  --shadow: 0 22px 55px rgba(0,0,0,.08);
+
+  --cardW: min(520px, 36vw);
 }
 
 *{ box-sizing:border-box; }
@@ -30,21 +34,34 @@ body{
   font-family:"NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
+/* 整個視窗像盒子（附圖那種白色版心） */
 .page{
-  position:relative;
   min-height:100vh;
+  padding: var(--pad);
   display:grid;
   grid-template-columns: var(--leftW) 1fr var(--rightW);
   gap: var(--gap);
-  padding: var(--pad);
-  overflow:hidden;
+
+  position:relative;
 }
 
-/* 左右固定 */
-.left,.right{
-  position:relative;
-  z-index:2;
+.page::before{
+  content:"";
+  position:absolute;
+  inset: var(--pad);
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index:0;
 }
+
+/* 三欄都在版心上 */
+.left,.center,.right{
+  position:relative;
+  z-index:1;
+}
+
+/* 左：logo 固定位置（附圖那種偏中下） */
 .left{
   display:flex;
   align-items:center;
@@ -52,129 +69,163 @@ body{
 .brand-logo{
   width: min(520px, 92%);
   height:auto;
-  transform: translateY(14vh);
-  transition: transform 520ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+  transform: translateY(10vh);
+  transition: transform 520ms cubic-bezier(.2,.9,.2,1), opacity 360ms ease;
   will-change: transform, opacity;
 }
 
-/* 右側文字 */
-.right .info{
-  max-width: 360px;
-  margin-left:auto;
-  padding-top: 22vh;
-}
-.title{ margin:0 0 10px 0; font-size:16px; }
-.body{ margin:0; line-height:1.55; font-size:15px; }
-.meta{ margin:34px 0 0 0; font-size:14px; }
-.contact{ margin:54px 0 0 0; font-size:14px; }
-
-/* 中間作品軌道 */
+/* 中：直向堆疊，可上下滑 */
 .center{
-  position:relative;
-  z-index:1;
-  min-height: calc(100vh - var(--pad)*2);
   display:flex;
-  align-items:center;
+  justify-content:center;
+  align-items:flex-start;
+  padding-top: 7vh;
+  padding-bottom: 7vh;
 }
-.rail{
+
+.stack{
+  width: var(--cardW);
+  max-height: calc(100vh - var(--pad)*2 - 14vh);
+  overflow:auto;
   display:flex;
-  gap: 28px;
-  align-items:center;
-  overflow-x:auto;
-  overflow-y:hidden;
-  scroll-snap-type: x mandatory;
-  padding: 12px 10px 12px 10px;
-  width:100%;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  flex-direction:column;
+  gap: 26px;
+  scroll-snap-type: y mandatory;
+  padding-right: 6px; /* 讓滾動條不吃到卡片 */
 }
-.rail::-webkit-scrollbar{ display:none; }
+
+/* 滾動條盡量隱形（保留可用性） */
+.stack::-webkit-scrollbar{ width:10px; }
+.stack::-webkit-scrollbar-thumb{ background: rgba(0,0,0,.08); border-radius: 99px; }
+.stack{ scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.12) transparent; }
 
 .card{
-  flex: 0 0 auto;
-  width: min(520px, 42vw);
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius);
-  background: #d9d9d9;
+  width:100%;
+  aspect-ratio: 1/1;
+  background: var(--ph);
   position:relative;
-  box-shadow: var(--shadow);
   overflow:hidden;
-  scroll-snap-align: center;
-  cursor: pointer;
-  transform: translateZ(0);
+  scroll-snap-align: start;
+  cursor:pointer;
+  user-select:none;
+  border-radius: 0;  /* 附圖偏硬朗方塊 */
 }
-.card .num{
+
+/* X 線框（附圖那種 wireframe） */
+.card::before,
+.card::after{
+  content:"";
   position:absolute;
-  right:-28px;
-  top:-10px;
-  font-size:14px;
+  inset:0;
+  background:
+    linear-gradient(to bottom right, transparent 49.7%, rgba(0,0,0,.55) 50%, transparent 50.3%),
+    linear-gradient(to top right, transparent 49.7%, rgba(0,0,0,.55) 50%, transparent 50.3%);
+  opacity: .35;
+  pointer-events:none;
 }
+
 .card .thumb{
   width:100%;
   height:100%;
   object-fit:cover;
   display:block;
-  filter: saturate(1.02) contrast(1.02);
-  transform: scale(1.001);
+  opacity:1;
 }
 
-/* Back 按鈕 */
+/* 編號在卡片右側（01/02/03） */
+.card .label{
+  position:absolute;
+  right: -34px;
+  top: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* 右：文字固定位置 */
+.right{
+  display:flex;
+  justify-content:flex-start;
+  align-items:flex-start;
+  padding-top: 18vh;
+}
+
+.info{
+  max-width: 360px;
+}
+
+.info-title{
+  margin:0 0 10px 0;
+  font-size:16px;
+}
+.info-body{
+  margin:0;
+  line-height:1.6;
+  font-size:15px;
+}
+.info-meta{
+  margin: 40px 0 0 0;
+  font-size:14px;
+}
+.info-contact{
+  margin: 70px 0 0 0;
+  font-size:14px;
+}
+
+/* Back */
 .back{
   position:absolute;
-  right: var(--pad);
-  top: var(--pad);
+  right: calc(var(--pad) + 10px);
+  top: calc(var(--pad) + 10px);
   z-index:5;
-  background: transparent;
-  border: none;
-  font: inherit;
-  color: var(--text);
+
+  background:transparent;
+  border:none;
+  font:inherit;
+  color:var(--text);
   text-decoration: underline;
-  cursor: pointer;
+  cursor:pointer;
+
   opacity:0;
   pointer-events:none;
   transform: translateY(-6px);
-  transition: opacity 240ms ease, transform 240ms ease;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
-/* focus overlay (放大後的圖) */
+/* detail overlay */
 .focus{
   position:absolute;
   inset:0;
   z-index:4;
   pointer-events:none;
 }
-.focus .focus-img{
+
+/* 點擊後的放大圖位置：移到左側區塊（logo那邊） */
+.focus .focusBox{
   position:absolute;
-  left: var(--pad);
+  left: calc(var(--pad) + 10px);
   top: 50%;
   transform: translateY(-50%);
-  width: min(560px, calc(var(--leftW) + 14vw));
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius);
+  width: min(520px, calc(var(--leftW) - 2vw));
+  aspect-ratio: 1/1;
+  background: var(--ph);
+  box-shadow: 0 28px 70px rgba(0,0,0,.12);
   overflow:hidden;
-  box-shadow: 0px 28px 70px rgba(0,0,0,.12);
-  background:#ddd;
 }
-.focus .focus-img img{
+
+.focus .focusBox img{
   width:100%;
   height:100%;
   object-fit:cover;
   display:block;
 }
 
-/* 進入作品詳情狀態 */
+/* detail 狀態：logo 往左滑出、back 出現 */
 .page.is-detail .brand-logo{
-  transform: translate(-120%, 14vh);
+  transform: translate(-140%, 10vh);
   opacity:0;
 }
 .page.is-detail .back{
   opacity:1;
   pointer-events:auto;
   transform: translateY(0);
-}
-
-/* 讓右側文字 scramble 時看起來更像「跳動」 */
-.scramble{
-  display:inline-block;
-  will-change: contents;
 }
