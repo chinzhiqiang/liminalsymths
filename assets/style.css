@@ -1,116 +1,59 @@
-/* 套用正確字體 */
-@font-face {
-  font-family: "NeueMetanaNext";
-  src: url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
-  font-weight: 600;
-}
-
-:root {
-  --bg: #f3f3f3;
-  --text: #111;
-  --pad: 56px;
-  --font-main: "NeueMetanaNext", sans-serif;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  font-family: var(--font-main);
-  overflow: hidden; /* 防止視窗捲動 */
-}
-
-.page {
-  display: grid;
-  grid-template-columns: 26vw 1fr 28vw; /* 符合圖二比例 */
-  height: 100vh;
-  padding: 0 var(--pad);
-  transition: all 0.6s cubic-bezier(0.2, 0.9, 0.2, 1);
-}
-
-/* 左側：Logo 固定 */
+/* 1. Logo 放大三倍並垂直置中 */
 .left {
-  padding-top: 18vh;
+  display: flex;
+  align-items: center; /* 垂直置中 */
+  justify-content: flex-start;
   transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.4s;
 }
 
 .brand-logo {
-  width: 140px; /* 根據你的 logo 大小調整 */
+  width: 300px; /* 原本約 100px，放大三倍 */
+  height: auto;
 }
 
-/* 中間：滾動區與圖片編號 */
-.center {
-  height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scrollbar-width: none;
-}
-.center::-webkit-scrollbar { display: none; }
-
-.stack {
-  padding: 18vh 0;
-}
-
+/* 2. 數字標碼放在圖片右上角，平行頂端 */
 .card {
+  position: relative;
   height: 70vh;
   margin-bottom: 20vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  scroll-snap-align: center;
-  cursor: pointer;
 }
 
 .card-num {
+  position: absolute;
+  top: 0;
+  right: -30px; /* 稍微往右偏一點點避免擋到圖，若要完全貼合請設為 0 */
   font-size: 14px;
-  margin-bottom: 15px;
-  color: var(--text);
+  font-family: var(--font-main);
 }
 
-.card img {
-  max-width: 100%;
-  max-height: 80%;
-  object-fit: contain;
-}
-
-/* 右側：文字資訊 */
+/* 3. 右方資訊垂直置中 + 字級縮小兩倍 */
 .right {
-  padding-top: 18vh;
   display: flex;
-  flex-direction: column;
+  align-items: center; /* 垂直置中 */
+  justify-content: flex-start;
 }
 
-/* 狀態切換：Detail Mode */
+.info {
+  font-size: 7.5px; /* 原本約 15px，縮小兩倍 */
+  line-height: 1.6;
+}
+
+.info-title {
+  font-size: 8px; /* 標題同步縮小 */
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* 4. 點擊後 Detail 狀態：左方文字資訊也要置中且小字 */
 .page.is-detail .left {
-  transform: translateX(-120%);
+  transform: translateX(-150%); /* 確保 Logo 飛出畫面外 */
   opacity: 0;
 }
 
-.page.is-detail .center {
-  pointer-events: none; /* 防止詳情頁還能捲動中間 */
-}
-
-.back {
-  position: fixed;
-  top: var(--pad);
-  right: var(--pad);
-  opacity: 0;
-  pointer-events: none;
-  background: none; border: none; font-family: inherit;
-  text-decoration: underline; cursor: pointer;
-  z-index: 100;
-  transition: 0.4s ease;
-}
-
-.page.is-detail .back {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* 飛過的圖片樣式 */
-#flipping-img {
-  position: fixed;
-  z-index: 99;
-  object-fit: contain;
-  transition: all 0.7s cubic-bezier(0.2, 0.9, 0.2, 1);
+/* 隱藏正在被點擊的原始圖片，避免重疊 */
+.card.is-active img {
+  visibility: hidden;
 }
