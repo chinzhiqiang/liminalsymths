@@ -18,22 +18,35 @@ body, html {
 
 .page {
   display: grid;
-  grid-template-columns: 30vw 35vw 35vw; 
+  grid-template-columns: 30vw 35vw 35vw; /* 依據附圖比例 */
   height: 100vh;
   padding: 0 var(--pad);
   position: relative;
 }
 
-/* 左側 Logo */
+/* 左側：垂直置中 */
 .left {
   display: flex;
   align-items: center;
   height: 100vh;
-  transition: opacity 0.3s ease;
 }
-.brand-logo { width: 320px; height: auto; }
+.brand-logo {
+  width: 320px; 
+  height: auto;
+}
 
-/* 中間捲動區：首頁圖片縮小 */
+/* 詳情頁專用圖片容器 */
+#detailView {
+  display: none;
+  width: 100%;
+}
+#detailView img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* 中間捲動區 */
 .center {
   height: 100vh;
   overflow-y: scroll;
@@ -50,7 +63,7 @@ body, html {
   justify-content: center;
   scroll-snap-align: center;
 }
-/* 按照要求：首頁中間圖片縮小，留白變多 */
+/* 首頁中間圖片縮小至 55%，留白變多 */
 .card img {
   max-width: 55%; 
   max-height: 55%;
@@ -58,53 +71,48 @@ body, html {
   cursor: pointer;
 }
 
-/* 編號：精確對齊圖片邊角 */
+/* 編號：精確對齊圖片右上角 */
 .card-num {
   position: absolute;
-  top: 22%; 
-  right: 18%; 
+  top: 22.5%; 
+  right: 18.5%; 
   font-size: 14px;
+  font-weight: 600;
 }
 
-/* 右側資訊：字級恢復正常，不貼齊圖片 */
+/* 右側文字：不貼齊圖片，字級放大 */
 .right {
   display: flex;
   align-items: center;
   height: 100vh;
-  padding-left: 80px; 
+  padding-left: 80px; /* 增加與中間圖片的間距 */
 }
 .info {
   font-size: 14px; 
   line-height: 1.5;
   max-width: 320px;
 }
-
-/* --- 詳情頁狀態切換 (無動畫版) --- */
-.page.is-detail .left { display: none; } /* 直接消失 */
-.page.is-detail .center { display: none; } /* 隱藏滾動區 */
-
-/* 詳情頁圖片：點擊後直接出現在左側 */
-.detail-view {
-  display: none;
-  grid-column: 1; /* 佔據原本 Logo 的位置 */
-  align-items: center;
-  justify-content: flex-start;
-  height: 100vh;
+.info-title {
+  font-size: 16px;
+  margin-bottom: 12px;
 }
-.page.is-detail .detail-view { display: flex; }
-.detail-view img { width: 100%; height: auto; object-fit: contain; }
 
-/* Back 按鈕：找回並置頂 */
+/* 詳情頁狀態切換 (直接顯示/隱藏) */
+.page.is-detail #brandLogo { display: none; }
+.page.is-detail .center { display: none; }
+.page.is-detail #detailView { display: block; }
+
+/* BACK 按鈕置頂 */
 .back {
   position: fixed;
-  top: 40px;
-  right: 60px;
-  z-index: 9999; /* 最高層級 */
+  top: 50px;
+  right: 70px;
+  z-index: 9999;
   background: none; border: none;
   font-family: var(--font-main);
   font-size: 14px;
   text-decoration: underline;
   cursor: pointer;
-  display: none; /* 平時隱藏 */
+  display: none;
 }
 .page.is-detail .back { display: block; }
