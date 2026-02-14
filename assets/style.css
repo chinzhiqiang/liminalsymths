@@ -1,60 +1,42 @@
-/* 修正字體路徑：因為 style.css 在 assets 內，要往外跳一格找 fonts */
 @font-face {
   font-family: "NeueMetanaNext";
   src: url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
-  font-weight: 600;
-  font-style: normal;
 }
 
 :root {
-  --pad: 56px;
-  --font-main: "NeueMetanaNext", sans-serif; /* 確保變數正確 */
+  --pad: 60px;
+  --font-main: "NeueMetanaNext", sans-serif;
 }
-
-* { box-sizing: border-box; }
 
 body, html {
   margin: 0; padding: 0;
   height: 100vh; width: 100vw;
   overflow: hidden;
   background: #f3f3f3;
-  /* 強制全域套用正確字體 */
-  font-family: var(--font-main) !important; 
+  font-family: var(--font-main) !important;
 }
 
 .page {
   display: grid;
-  grid-template-columns: 26vw 1fr 28vw;
+  /* 調整比例：左欄固定，中間縮窄，右欄留白 */
+  grid-template-columns: 30vw 35vw 35vw; 
   height: 100vh;
   padding: 0 var(--pad);
-  position: relative;
 }
 
-/* 左側 Logo：放大 3 倍 + 垂直置中 */
+/* 1. Logo：放大且垂直置中 */
 .left {
   display: flex;
-  align-items: center; 
+  align-items: center;
   height: 100vh;
   transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.4s;
 }
 .brand-logo {
-  width: 300px; /* 根據需求放大 */
+  width: 320px; 
   height: auto;
 }
 
-/* 右側資訊：垂直置中 + 字級縮小 2 倍 */
-.right {
-  display: flex;
-  align-items: center;
-  height: 100vh;
-}
-.info {
-  font-size: 7.5px; /* 縮小兩倍 */
-  line-height: 1.6;
-  font-family: var(--font-main);
-}
-
-/* 中間捲動區 */
+/* 2. 中間圖片：縮小尺寸，確保不貼邊 */
 .center {
   height: 100vh;
   overflow-y: scroll;
@@ -71,47 +53,43 @@ body, html {
   justify-content: center;
   scroll-snap-align: center;
 }
+/* 圖片縮小至 55%，符合附圖那種留白感 */
 .card img {
-  max-width: 100%;
-  max-height: 70%;
+  max-width: 55%; 
+  max-height: 55%;
+  object-fit: contain;
   cursor: pointer;
 }
 
-/* 數字標碼：放在圖片右上角 */
+/* 3. 編號位置：精確對齊圖片右上角 */
 .card-num {
   position: absolute;
-  top: 15%; 
-  right: 5%;
-  font-size: 11px;
-  font-family: var(--font-main);
+  /* 這裡的數值是根據 55% 圖片大小推算的對齊點 */
+  top: 22%; 
+  right: 18%; 
+  font-size: 14px;
+  font-weight: 600;
 }
 
-/* 詳情頁狀態 */
-.page.is-detail .left {
-  transform: translateX(-150%);
-  opacity: 0;
+/* 4. 右側資訊：字級放大 + 往右偏移(不貼齊圖片) */
+.right {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+  padding-left: 80px; /* 關鍵：增加與中間圖片的間距 */
 }
-
-/* 隱藏原圖防止重疊 */
-.card.is-active img, .card.is-active .card-num {
-  visibility: hidden;
+.info {
+  /* 字級放大回原本約 14px-15px 的體感，不再縮小兩倍 */
+  font-size: 14px; 
+  line-height: 1.5;
+  max-width: 320px;
 }
+.info-title { font-size: 16px; margin-bottom: 15px; }
 
+/* 動畫與狀態控制 */
+.page.is-detail .left { transform: translateX(-150%); opacity: 0; }
+.card.is-active img, .card.is-active .card-num { visibility: hidden; }
 #flipping-img {
-  position: fixed;
-  z-index: 999;
-  object-fit: contain;
+  position: fixed; z-index: 999; object-fit: contain;
   transition: all 0.7s cubic-bezier(0.2, 0.9, 0.2, 1);
 }
-
-.back {
-  position: fixed;
-  top: var(--pad);
-  right: var(--pad);
-  opacity: 0;
-  pointer-events: none;
-  background: none; border: none; 
-  font-family: var(--font-main);
-  text-decoration: underline; cursor: pointer;
-}
-.page.is-detail .back { opacity: 1; pointer-events: auto; }
