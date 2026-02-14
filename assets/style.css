@@ -1,231 +1,41 @@
-@font-face{
-  font-family:"NeueMetanaNext";
-  src:url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
-  font-weight:600;
-  font-style:normal;
-  font-display:swap;
+/* 修改 .page 的 layout 邏輯 */
+.page {
+  transition: padding 0.5s cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
-:root{
-  --bg:#f3f3f3;         /* 附圖的淡灰底感 */
-  --paper:#ffffff;      /* 版心白色 */
-  --text:#111;
-  --muted:#8a8a8a;
-  --ph:#d9d9d9;
-
-  --pad:56px;
-  --gap:44px;
-
-  --leftW: 26vw;
-  --rightW: 28vw;
-
-  --radius:18px;
-  --shadow: 0 22px 55px rgba(0,0,0,.08);
-
-  --cardW: min(520px, 36vw);
+/* 當進入詳情頁時 */
+.page.is-detail .left {
+  transform: translateX(-120%); /* Logo 飛出去 */
+  opacity: 0;
 }
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:"NeueMetanaNext", ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
+.page.is-detail .stack {
+  pointer-events: none; /* 詳情頁時中間不能再點擊 */
+  opacity: 0;
 }
 
-/* 整個視窗像盒子（附圖那種白色版心） */
-.page{
-  min-height:100vh;
-  padding: var(--pad);
-  display:grid;
-  grid-template-columns: var(--leftW) 1fr var(--rightW);
-  gap: var(--gap);
-
-  position:relative;
-}
-
-.page::before{
-  content:"";
-  position:absolute;
-  inset: var(--pad);
-  background: var(--paper);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  z-index:0;
-}
-
-/* 三欄都在版心上 */
-.left,.center,.right{
-  position:relative;
-  z-index:1;
-}
-
-/* 左：logo 固定位置（附圖那種偏中下） */
-.left{
-  display:flex;
-  align-items:center;
-}
-.brand-logo{
-  width: min(520px, 92%);
-  height:auto;
-  transform: translateY(10vh);
-  transition: transform 520ms cubic-bezier(.2,.9,.2,1), opacity 360ms ease;
-  will-change: transform, opacity;
-}
-
-/* 中：直向堆疊，可上下滑 */
-.center{
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  padding-top: 7vh;
-  padding-bottom: 7vh;
-}
-
-.stack{
-  width: var(--cardW);
-  max-height: calc(100vh - var(--pad)*2 - 14vh);
-  overflow:auto;
-  display:flex;
-  flex-direction:column;
-  gap: 26px;
-  scroll-snap-type: y mandatory;
-  padding-right: 6px; /* 讓滾動條不吃到卡片 */
-}
-
-/* 滾動條盡量隱形（保留可用性） */
-.stack::-webkit-scrollbar{ width:10px; }
-.stack::-webkit-scrollbar-thumb{ background: rgba(0,0,0,.08); border-radius: 99px; }
-.stack{ scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.12) transparent; }
-
-.card{
-  width:100%;
-  aspect-ratio: 1/1;
-  background: var(--ph);
-  position:relative;
-  overflow:hidden;
-  scroll-snap-align: start;
-  cursor:pointer;
-  user-select:none;
-  border-radius: 0;  /* 附圖偏硬朗方塊 */
-}
-
-/* X 線框（附圖那種 wireframe） */
-.card::before,
-.card::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(to bottom right, transparent 49.7%, rgba(0,0,0,.55) 50%, transparent 50.3%),
-    linear-gradient(to top right, transparent 49.7%, rgba(0,0,0,.55) 50%, transparent 50.3%);
-  opacity: .35;
-  pointer-events:none;
-}
-
-.card .thumb{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-  opacity:1;
-}
-
-/* 編號在卡片右側（01/02/03） */
-.card .label{
-  position:absolute;
-  right: -34px;
-  top: 6px;
-  font-size: 14px;
-  color: var(--text);
-}
-
-/* 右：文字固定位置 */
-.right{
-  display:flex;
-  justify-content:flex-start;
-  align-items:flex-start;
-  padding-top: 18vh;
-}
-
-.info{
-  max-width: 360px;
-}
-
-.info-title{
-  margin:0 0 10px 0;
-  font-size:16px;
-}
-.info-body{
-  margin:0;
-  line-height:1.6;
-  font-size:15px;
-}
-.info-meta{
-  margin: 40px 0 0 0;
-  font-size:14px;
-}
-.info-contact{
-  margin: 70px 0 0 0;
-  font-size:14px;
-}
-
-/* Back */
-.back{
-  position:absolute;
-  right: calc(var(--pad) + 10px);
-  top: calc(var(--pad) + 10px);
-  z-index:5;
-
-  background:transparent;
-  border:none;
-  font:inherit;
-  color:var(--text);
-  text-decoration: underline;
-  cursor:pointer;
-
-  opacity:0;
-  pointer-events:none;
-  transform: translateY(-6px);
-  transition: opacity 220ms ease, transform 220ms ease;
-}
-
-/* detail overlay */
-.focus{
-  position:absolute;
-  inset:0;
-  z-index:4;
-  pointer-events:none;
-}
-
-/* 點擊後的放大圖位置：移到左側區塊（logo那邊） */
-.focus .focusBox{
-  position:absolute;
-  left: calc(var(--pad) + 10px);
-  top: 50%;
-  transform: translateY(-50%);
-  width: min(520px, calc(var(--leftW) - 2vw));
-  aspect-ratio: 1/1;
-  background: var(--ph);
-  box-shadow: 0 28px 70px rgba(0,0,0,.12);
-  overflow:hidden;
-}
-
-.focus .focusBox img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-
-/* detail 狀態：logo 往左滑出、back 出現 */
-.page.is-detail .brand-logo{
-  transform: translate(-140%, 10vh);
-  opacity:0;
-}
-.page.is-detail .back{
-  opacity:1;
-  pointer-events:auto;
+.page.is-detail .back {
+  opacity: 1;
+  pointer-events: auto;
   transform: translateY(0);
 }
+
+/* 詳情頁的大圖容器 */
+.focus-box {
+  position: absolute;
+  left: var(--pad);
+  top: 18vh;
+  width: 45vw; /* 放大後的寬度 */
+  height: auto;
+  z-index: 10;
+}
+
+.focus-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px; /* 稍微圓角更有質感 */
+}
+
+/* 隱藏原生捲軸但保持滾動功能 */
+.center::-webkit-scrollbar { display: none; }
