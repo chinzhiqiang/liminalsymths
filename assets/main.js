@@ -1,6 +1,6 @@
 (() => {
   const page = document.getElementById("page");
-  const rail = document.getElementById("rail");
+  const stack = document.getElementById("stack");
   const focus = document.getElementById("focus");
   const backBtn = document.getElementById("backBtn");
 
@@ -9,200 +9,169 @@
   const infoMeta = document.getElementById("infoMeta");
   const infoContact = document.getElementById("infoContact");
 
-  // 你之後只要在這裡加作品就好
-  // img 先用 placeholder，你可以換成 assets/works/01.jpg 之類
+  // ✅ 這裡只要加作品就好
+  // img 可先不放，沒圖就維持灰塊+X（更像附圖）
   const WORKS = [
     {
-      id: "01",
-      img: "assets/works/01.jpg", // 沒有也沒關係，會顯示灰底
-      title: "Work 01 — Threshold Study",
+      id:"01",
+      img:"assets/works/01.jpg",
+      title:"Work 01 — Threshold Study",
       body:
         "A study on liminal surfaces and typographic tension.\n" +
         "Material experiments, compression, and release.\n" +
-        "This is placeholder copy.",
-      meta: "Graphic / Identity / System",
-      contact: "2026 · liminalsynths"
+        "Placeholder description for now.",
+      meta:"Graphic / Identity / System",
+      contact:"2026 · liminalsynths"
     },
     {
-      id: "02",
-      img: "assets/works/02.jpg",
-      title: "Work 02 — Hybrid Signal",
+      id:"02",
+      img:"assets/works/02.jpg",
+      title:"Work 02 — Hybrid Signal",
       body:
         "A hybrid visual system for transitional states.\n" +
         "Grid discipline vs. noise drift.\n" +
-        "This is placeholder copy.",
-      meta: "Motion / Posters / Direction",
-      contact: "2026 · liminalsynths"
+        "Placeholder description for now.",
+      meta:"Motion / Posters / Direction",
+      contact:"2026 · liminalsynths"
     },
     {
-      id: "03",
-      img: "assets/works/03.jpg",
-      title: "Work 03 — Liminal Key",
+      id:"03",
+      img:"assets/works/03.jpg",
+      title:"Work 03 — Liminal Key",
       body:
-        "A key-like object locked inside a page-frame.\n" +
-        "Interaction as a narrative cue.\n" +
-        "This is placeholder copy.",
-      meta: "Interactive / Web / Installation",
-      contact: "2026 · liminalsynths"
+        "Interaction as narrative cue.\n" +
+        "A key-like object locked in a page.\n" +
+        "Placeholder description for now.",
+      meta:"Interactive / Web",
+      contact:"2026 · liminalsynths"
     }
   ];
 
-  // --------- 生成卡片 ---------
-  function buildCards() {
-    rail.innerHTML = "";
-    WORKS.forEach((w, idx) => {
+  // ---- 建立卡片（直向堆疊） ----
+  function build(){
+    stack.innerHTML = "";
+
+    WORKS.forEach((w) => {
       const card = document.createElement("div");
       card.className = "card";
       card.dataset.workId = w.id;
 
-      const num = document.createElement("span");
-      num.className = "num";
-      num.textContent = w.id;
+      const label = document.createElement("span");
+      label.className = "label";
+      label.textContent = w.id;
 
-      // img 可不存在：用 onerror fallback
+      // 作品圖（可不存在：不存在就保持灰塊+X）
       const img = document.createElement("img");
       img.className = "thumb";
       img.alt = `work ${w.id}`;
       img.src = w.img;
       img.loading = "lazy";
-      img.onerror = () => {
-        img.remove(); // 沒圖就留灰底
-      };
+      img.onerror = () => img.remove();
 
       card.appendChild(img);
-      card.appendChild(num);
+      card.appendChild(label);
 
-      card.addEventListener("click", () => openWork(w, card));
-
-      rail.appendChild(card);
+      card.addEventListener("click", () => openDetail(w, card));
+      stack.appendChild(card);
     });
   }
 
-  // --------- 中間滑動體驗：滑鼠滾輪橫移 ---------
-  rail.addEventListener(
-    "wheel",
-    (e) => {
-      // 觸控板水平滾動就放行；垂直滾動轉水平
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        rail.scrollLeft += e.deltaY;
-      }
-    },
-    { passive: false }
-  );
-
-  // 也支援拖曳滑動（桌機更直覺）
-  let dragging = false;
-  let dragX = 0;
-  let startLeft = 0;
-
-  rail.addEventListener("pointerdown", (e) => {
-    if (page.classList.contains("is-detail")) return;
-    dragging = true;
-    dragX = e.clientX;
-    startLeft = rail.scrollLeft;
-    rail.setPointerCapture?.(e.pointerId);
-  });
-
-  rail.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-    const dx = e.clientX - dragX;
-    rail.scrollLeft = startLeft - dx;
-  });
-
-  const endDrag = (e) => {
-    dragging = false;
-    try { rail.releasePointerCapture?.(e.pointerId); } catch (_) {}
-  };
-  rail.addEventListener("pointerup", endDrag);
-  rail.addEventListener("pointercancel", endDrag);
-
-  // --------- 亂碼過渡（scramble）---------
-  function scrambleTo(el, finalText, duration = 620) {
+  // ---- 亂碼過渡（&*^$...） ----
+  function scrambleTo(el, finalText, duration = 700){
     const chars = "!@#$%^&*()_+-=[]{};:,.<>?/|~";
     const start = performance.now();
     const from = el.textContent;
-
-    // 保留換行（用 \n 轉 <br>）
-    const isHTML = el.tagName.toLowerCase() === "p";
     const final = finalText;
 
-    function frame(t) {
+    const isP = el.tagName.toLowerCase() === "p";
+
+    function tick(t){
       const p = Math.min(1, (t - start) / duration);
       const outLen = Math.max(from.length, final.length);
 
       let out = "";
-      for (let i = 0; i < outLen; i++) {
-        const reveal = p * outLen;
-        if (i < reveal) {
-          out += final[i] ?? "";
-        } else {
-          out += chars[Math.floor(Math.random() * chars.length)];
-        }
+      const reveal = p * outLen;
+
+      for (let i=0;i<outLen;i++){
+        if (i < reveal) out += (final[i] ?? "");
+        else out += chars[Math.floor(Math.random()*chars.length)];
       }
 
-      if (isHTML) {
-        el.innerHTML = out.replace(/\n/g, "<br>");
-      } else {
-        el.textContent = out;
-      }
+      if (isP) el.innerHTML = out.replace(/\n/g, "<br>");
+      else el.textContent = out;
 
-      if (p < 1) requestAnimationFrame(frame);
+      if (p < 1) requestAnimationFrame(tick);
       else {
-        if (isHTML) el.innerHTML = final.replace(/\n/g, "<br>");
+        if (isP) el.innerHTML = final.replace(/\n/g, "<br>");
         else el.textContent = final;
       }
     }
-    requestAnimationFrame(frame);
+    requestAnimationFrame(tick);
   }
 
-  // --------- 開啟作品（放大移左 + logo 滑出 + 右側亂碼變資訊）---------
-  function openWork(work, cardEl) {
+  // ---- 點擊進 detail：卡片放大移左 + logo 滑出 + 右側文字亂碼變更 ----
+  function openDetail(work, cardEl){
     if (page.classList.contains("is-detail")) return;
 
     page.classList.add("is-detail");
 
-    // Focus 圖：複製 img / 或用純灰底
+    // focus box
     focus.innerHTML = "";
-    const wrap = document.createElement("div");
-    wrap.className = "focus-img";
+    const box = document.createElement("div");
+    box.className = "focusBox";
 
+    // 如果卡片有圖，就放圖；沒有就保持灰塊
     const imgInCard = cardEl.querySelector("img");
-    if (imgInCard) {
+    if (imgInCard){
       const img = document.createElement("img");
       img.src = imgInCard.currentSrc || imgInCard.src;
-      img.alt = `work ${work.id}`;
-      wrap.appendChild(img);
+      img.alt = work.title;
+      box.appendChild(img);
     }
+    focus.appendChild(box);
 
-    focus.appendChild(wrap);
+    // ✅ FLIP 動畫：從卡片位置飛到左側 focusBox
+    const from = cardEl.getBoundingClientRect();
+    const to = box.getBoundingClientRect();
 
-    // 右側文字 scramble → 作品資訊
+    const dx = from.left - to.left;
+    const dy = from.top - to.top;
+    const sx = from.width / to.width;
+    const sy = from.height / to.height;
+
+    box.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
+        { transform: `translate(0px, 0px) scale(1,1)` }
+      ],
+      { duration: 520, easing: "cubic-bezier(.2,.9,.2,1)", fill:"both" }
+    );
+
+    // 右側資訊亂碼切換（先假資訊）
     scrambleTo(infoTitle, work.title, 520);
-    scrambleTo(infoBody, work.body, 780);
+    scrambleTo(infoBody, work.body, 860);
     scrambleTo(infoMeta, work.meta, 620);
     scrambleTo(infoContact, work.contact, 620);
   }
 
-  // --------- 回到首頁 ----------
-  function closeWork() {
+  // ---- Back 回首頁 ----
+  function closeDetail(){
     if (!page.classList.contains("is-detail")) return;
 
     page.classList.remove("is-detail");
     focus.innerHTML = "";
 
-    // scramble 回首頁文案
     scrambleTo(infoTitle, "liminalsynths", 520);
     scrambleTo(
       infoBody,
-      "signifies a synthesis in transition.\nwhere liminal states meet synths of\nform and thought.\nIt captures the generative tension\nbetween concepts and mediums,\nmanifesting in works that explore\nthresholds and hybridities.",
-      780
+      "signifies a synthesis in transition.\nwhere liminal states meet synths of\nform and thought.\nIt captures the generative tension\nbetween concepts and mediums,\nmanifesting in works that\nexplore thresholds and hybridities.",
+      860
     );
     scrambleTo(infoMeta, "by zhiqiangchin", 620);
     scrambleTo(infoContact, "liminalsynths@gmail.com\n@liminalsynths", 620);
   }
 
-  backBtn.addEventListener("click", closeWork);
+  backBtn.addEventListener("click", closeDetail);
 
-  buildCards();
+  build();
 })();
