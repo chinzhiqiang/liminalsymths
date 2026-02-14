@@ -9,49 +9,27 @@
 
 <body>
   <main class="page" id="page">
-    <!-- 左：固定 Logo -->
+    <button class="back" id="backBtn">BACK</button>
+
     <aside class="left" id="left">
-      <img class="brand-logo" id="brandLogo" src="assets/logo.svg" alt="liminalsynths logo" />
+      <img class="brand-logo" id="brandLogo" src="assets/logo.svg" alt="logo" />
+      <div class="detail-view" id="detailView"></div>
     </aside>
 
-    <!-- 中：直向作品堆疊（可上下滑） -->
-    <section class="center" aria-label="works">
-      <div class="stack" id="stack">
-        <!-- cards 由 JS 生成 -->
-      </div>
+    <section class="center" id="center">
+      <div class="stack" id="stack"></div>
     </section>
 
-    <!-- 右：固定文字 -->
-    <aside class="right" id="right">
+    <aside class="right">
       <div class="info">
-        <p class="info-title" id="infoTitle">liminalsynths</p>
-
-        <p class="info-body" id="infoBody">
-          signifies a synthesis in transition.<br>
-          where liminal states meet synths of<br>
-          form and thought.<br>
-          It captures the generative tension<br>
-          between concepts and mediums,<br>
-          manifesting in works that<br>
-          explore thresholds and hybridities.
-        </p>
-
-        <p class="info-meta" id="infoMeta">by zhiqiangchin</p>
-
-        <p class="info-contact" id="infoContact">
-          liminalsynths@gmail.com<br>
-          @liminalsynths
-        </p>
+        <h1 class="info-title" id="infoTitle">liminalsynths</h1>
+        <div class="info-body" id="infoBody">
+          signifies a synthesis in transition. where liminal states meet synths of form and thought.
+        </div>
       </div>
     </aside>
-
-    <!-- 右上 Back -->
-    <button class="back" id="backBtn" type="button">back</button>
-
-    <!-- detail 放大圖層 -->
-    <div class="focus" id="focus" aria-hidden="true"></div>
   </main>
-
+  
   <script src="assets/main.js"></script>
 </body>
 </html>
