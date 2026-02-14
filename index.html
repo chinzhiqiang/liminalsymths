@@ -9,35 +9,36 @@
 
 <body>
   <main class="page" id="page">
-    <!-- 左側固定 Logo -->
+    <!-- 左：固定 Logo -->
     <aside class="left" id="left">
-      <img class="brand-logo" src="assets/logo.svg" alt="liminalsynths logo" />
+      <img class="brand-logo" id="brandLogo" src="assets/logo.svg" alt="liminalsynths logo" />
     </aside>
 
-    <!-- 中間可滑動作品列 -->
+    <!-- 中：直向作品堆疊（可上下滑） -->
     <section class="center" aria-label="works">
-      <div class="rail" id="rail">
-        <!-- 卡片由 JS 生成 -->
+      <div class="stack" id="stack">
+        <!-- cards 由 JS 生成 -->
       </div>
     </section>
 
-    <!-- 右側固定資訊 -->
+    <!-- 右：固定文字 -->
     <aside class="right" id="right">
-      <div class="info" aria-live="polite">
-        <p class="title" id="infoTitle">liminalsynths</p>
-        <p class="body" id="infoBody">
+      <div class="info">
+        <p class="info-title" id="infoTitle">liminalsynths</p>
+
+        <p class="info-body" id="infoBody">
           signifies a synthesis in transition.<br>
           where liminal states meet synths of<br>
           form and thought.<br>
           It captures the generative tension<br>
           between concepts and mediums,<br>
-          manifesting in works that explore<br>
-          thresholds and hybridities.
+          manifesting in works that<br>
+          explore thresholds and hybridities.
         </p>
 
-        <p class="meta" id="infoMeta">by zhiqiangchin</p>
+        <p class="info-meta" id="infoMeta">by zhiqiangchin</p>
 
-        <p class="contact" id="infoContact">
+        <p class="info-contact" id="infoContact">
           liminalsynths@gmail.com<br>
           @liminalsynths
         </p>
@@ -45,9 +46,9 @@
     </aside>
 
     <!-- 右上 Back -->
-    <button class="back" id="backBtn" type="button" aria-label="Back">back</button>
+    <button class="back" id="backBtn" type="button">back</button>
 
-    <!-- 放大用的 overlay（點作品時把圖搬到這裡） -->
+    <!-- detail 放大圖層 -->
     <div class="focus" id="focus" aria-hidden="true"></div>
   </main>
 
