@@ -18,25 +18,22 @@ body, html {
 
 .page {
   display: grid;
-  /* 調整比例：左欄固定，中間縮窄，右欄留白 */
   grid-template-columns: 30vw 35vw 35vw; 
   height: 100vh;
   padding: 0 var(--pad);
+  position: relative;
 }
 
-/* 1. Logo：放大且垂直置中 */
+/* 左側 Logo */
 .left {
   display: flex;
   align-items: center;
   height: 100vh;
-  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.4s;
+  transition: opacity 0.3s ease;
 }
-.brand-logo {
-  width: 320px; 
-  height: auto;
-}
+.brand-logo { width: 320px; height: auto; }
 
-/* 2. 中間圖片：縮小尺寸，確保不貼邊 */
+/* 中間捲動區：首頁圖片縮小 */
 .center {
   height: 100vh;
   overflow-y: scroll;
@@ -53,7 +50,7 @@ body, html {
   justify-content: center;
   scroll-snap-align: center;
 }
-/* 圖片縮小至 55%，符合附圖那種留白感 */
+/* 按照要求：首頁中間圖片縮小，留白變多 */
 .card img {
   max-width: 55%; 
   max-height: 55%;
@@ -61,35 +58,53 @@ body, html {
   cursor: pointer;
 }
 
-/* 3. 編號位置：精確對齊圖片右上角 */
+/* 編號：精確對齊圖片邊角 */
 .card-num {
   position: absolute;
-  /* 這裡的數值是根據 55% 圖片大小推算的對齊點 */
   top: 22%; 
   right: 18%; 
   font-size: 14px;
-  font-weight: 600;
 }
 
-/* 4. 右側資訊：字級放大 + 往右偏移(不貼齊圖片) */
+/* 右側資訊：字級恢復正常，不貼齊圖片 */
 .right {
   display: flex;
   align-items: center;
   height: 100vh;
-  padding-left: 80px; /* 關鍵：增加與中間圖片的間距 */
+  padding-left: 80px; 
 }
 .info {
-  /* 字級放大回原本約 14px-15px 的體感，不再縮小兩倍 */
   font-size: 14px; 
   line-height: 1.5;
   max-width: 320px;
 }
-.info-title { font-size: 16px; margin-bottom: 15px; }
 
-/* 動畫與狀態控制 */
-.page.is-detail .left { transform: translateX(-150%); opacity: 0; }
-.card.is-active img, .card.is-active .card-num { visibility: hidden; }
-#flipping-img {
-  position: fixed; z-index: 999; object-fit: contain;
-  transition: all 0.7s cubic-bezier(0.2, 0.9, 0.2, 1);
+/* --- 詳情頁狀態切換 (無動畫版) --- */
+.page.is-detail .left { display: none; } /* 直接消失 */
+.page.is-detail .center { display: none; } /* 隱藏滾動區 */
+
+/* 詳情頁圖片：點擊後直接出現在左側 */
+.detail-view {
+  display: none;
+  grid-column: 1; /* 佔據原本 Logo 的位置 */
+  align-items: center;
+  justify-content: flex-start;
+  height: 100vh;
 }
+.page.is-detail .detail-view { display: flex; }
+.detail-view img { width: 100%; height: auto; object-fit: contain; }
+
+/* Back 按鈕：找回並置頂 */
+.back {
+  position: fixed;
+  top: 40px;
+  right: 60px;
+  z-index: 9999; /* 最高層級 */
+  background: none; border: none;
+  font-family: var(--font-main);
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+  display: none; /* 平時隱藏 */
+}
+.page.is-detail .back { display: block; }
