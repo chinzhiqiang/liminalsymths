@@ -1,33 +1,143 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>liminalsynths</title>
-  <link rel="stylesheet" href="assets/style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>timinalbynths</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: white;
+            overflow: hidden; /* 防止捲動，確保像簡報 */
+        }
+
+        .page {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 目錄選項反藍效果 */
+        .menu-item:hover {
+            background-color: #0000FF;
+            color: white;
+            padding: 0 10px;
+        }
+
+        /* 作品牆撥動效果 */
+        .floating-img {
+            transition: transform 0.3s ease-out;
+            cursor: pointer;
+            position: absolute;
+        }
+        
+        .floating-img:hover {
+            transform: scale(1.05) rotate(3deg);
+            z-index: 50;
+        }
+
+        .back-arrow {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            cursor: pointer;
+            font-size: 24px;
+        }
+    </style>
 </head>
 <body>
-  <main class="page" id="page">
-    <button class="back" id="backBtn">BACK</button>
 
-    <aside class="left">
-      <img class="brand-logo" id="brandLogo" src="assets/logo.svg" alt="logo" />
-      <div class="detail-view" id="detailView"></div>
-    </aside>
+    <div id="landing" class="page active">
+        <img src="images/layout-01.png" alt="Logo" class="w-1/3 cursor-pointer" onclick="goTo('menu')">
+    </div>
 
-    <section class="center" id="center">
-      <div class="stack" id="stack"></div>
-    </section>
-
-    <aside class="right">
-      <div class="info">
-        <h1 class="info-title" id="infoTitle">liminalsynths</h1>
-        <div class="info-body" id="infoBody">
-          signifies a synthesis in transition. where liminal states meet synths of form and thought.
+    <div id="menu" class="page">
+        <div class="text-center text-4xl font-bold space-y-4">
+            <div class="menu-item cursor-pointer" onclick="goTo('about')">about</div>
+            <div class="menu-item cursor-pointer" onclick="goTo('contact')">contact</div>
+            <div class="menu-item cursor-pointer" onclick="goTo('poster')">poster</div>
+            <div class="menu-item cursor-pointer">typographic</div>
+            <div class="menu-item cursor-pointer">illustration</div>
+            <div class="menu-item cursor-pointer">project</div>
         </div>
-      </div>
-    </aside>
-  </main>
-  <script src="assets/main.js"></script>
+    </div>
+
+    <div id="about" class="page">
+        <div class="back-arrow" onclick="goTo('menu')">↩</div>
+        <div class="bg-gray-200 p-10 max-w-2xl text-center text-xl leading-relaxed">
+            In the liminal state between<br>
+            medium and concept, synths emerge.<br><br>
+            features visual creations<br>
+            in various forms.
+        </div>
+    </div>
+
+    <div id="contact" class="page">
+        <div class="back-arrow" onclick="goTo('menu')">↩</div>
+        <div class="text-center text-2xl font-bold">
+            liminalsynths@gmail.com<br>
+            @liminalsynths
+        </div>
+    </div>
+
+    <div id="poster" class="page" style="background: white;">
+        <div class="back-arrow" onclick="goTo('menu')">↩</div>
+        <img src="images/art1.jpg" class="floating-img w-40" style="top:20%; left:15%;" onclick="goTo('detail')">
+        <img src="images/art2.jpg" class="floating-img w-48" style="top:10%; left:40%;">
+        <img src="images/layout-06.jpg" class="floating-img w-56" style="top:15%; left:65%;" onclick="goTo('detail')">
+        <img src="images/art4.jpg" class="floating-img w-44" style="bottom:20%; left:20%;">
+        <div class="floating-img font-bold text-3xl" style="bottom:15%; left:45%;">strike</div>
+    </div>
+
+    <div id="detail" class="page">
+        <div class="back-arrow" onclick="goTo('poster')">↩</div>
+        <div class="flex w-full h-full p-20 items-center">
+            <div class="w-1/3 space-y-10">
+                <h1 class="text-4xl font-bold">foray</h1>
+                <p class="text-sm">2021<br>visual poster</p>
+                <p class="text-xs max-w-xs">
+                    a massive celestial body lands on barren ground. 
+                    its origin and purpose unknown. created with 
+                    illustration and post-production tools.
+                </p>
+            </div>
+            <div class="w-2/3 flex justify-center">
+                <img src="images/layout-06.jpg" class="max-h-[80vh] shadow-2xl">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goTo(pageId) {
+            // 隱藏所有頁面
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // 顯示目標頁面
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // 作品牆撥動微動效果
+        document.addEventListener('mousemove', (e) => {
+            const imgs = document.querySelectorAll('.floating-img');
+            const x = (window.innerWidth / 2 - e.pageX) / 50;
+            const y = (window.innerHeight / 2 - e.pageY) / 50;
+            
+            imgs.forEach(img => {
+                img.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+    </script>
 </body>
 </html>
