@@ -42,24 +42,29 @@
 
         .landing-logo{ width: min(720px, 80vw); height: auto; display:block; }
 
-        /* 目錄頁（SVG 按鈕） */
-        #menu{ background:#2b2f31; }
-        .menu-grid{
-            width: min(1100px, 92vw);
+        /* 目錄頁（對齊你提供的 SVG 排版：直向堆疊置中） */
+        #menu{ background:#ffffff; }
+        .menu-stack{
+            width: min(760px, 90vw);
             margin: 0 auto;
             height: 100vh;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-auto-rows: min-content;
-            gap: 70px 46px;
-            padding: 110px 50px;
-            align-content: start;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .menu-card{ cursor:pointer; user-select:none; }
-        .menu-svg{ width: 150px; height:auto; display:block; filter: drop-shadow(0 0 0 rgba(0,0,0,0)); }
-        .menu-filename{ margin-top: 22px; color:#e6e6e6; font-size: 22px; line-height:1.15; word-break: break-all; }
-        /* 第二排只有兩個 item，讓它們靠左排 */
-        .menu-card:nth-child(n+6){ grid-column: span 1; }
+        .menu-stack-inner{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+        .menu-link{ cursor: pointer; user-select: none; }
+        .menu-link img{
+            width: min(640px, 86vw);
+            height: auto;
+            display: block;
+        }
 
         .back-arrow { position: absolute; top: 44px; right: 44px; cursor: pointer; z-index: 100; }
         .back-icon{ width: 30px; height: 30px; display:block; }
@@ -91,48 +96,27 @@
     <div id="landing" class="page active" onclick="goTo('menu')">
         <div class="w-full h-full flex items-center justify-center">
             <div class="w-full flex items-center justify-center" style="transform: translateY(180px);">
-                <img src="#U8cc7#U7522 7.svg" class="landing-logo" alt="liminalsynths">
+                <img src="SVG/liminalsynths-logo.svg" class="landing-logo" alt="liminalsynths">
 </div>
             </div>
         </div>
     </div>
 
     <div id="menu" class="page">
-        <div class="menu-grid">
-            <div class="menu-card" onclick="goTo('project')">
-                <img src="#U8cc7#U7522 1.svg" class="menu-svg" alt="project">
-                <div class="menu-filename">#U8cc7#U7522 1.svg</div>
-            </div>
-            <div class="menu-card" onclick="goTo('illustration')">
-                <img src="#U8cc7#U7522 2.svg" class="menu-svg" alt="illustration">
-                <div class="menu-filename">#U8cc7#U7522 2.svg</div>
-            </div>
-            <div class="menu-card" onclick="goTo('typographic')">
-                <img src="#U8cc7#U7522 3.svg" class="menu-svg" alt="typographic">
-                <div class="menu-filename">#U8cc7#U7522 3.svg</div>
-            </div>
-            <div class="menu-card" onclick="goTo('poster')">
-                <img src="#U8cc7#U7522 4.svg" class="menu-svg" alt="poster">
-                <div class="menu-filename">#U8cc7#U7522 4.svg</div>
-            </div>
-            <div class="menu-card" onclick="goTo('about')">
-                <img src="#U8cc7#U7522 5.svg" class="menu-svg" alt="about">
-                <div class="menu-filename">#U8cc7#U7522 5.svg</div>
-            </div>
-
-            <div class="menu-card" onclick="goTo('contact')">
-                <img src="#U8cc7#U7522 6.svg" class="menu-svg" alt="contact">
-                <div class="menu-filename">#U8cc7#U7522 6.svg</div>
-            </div>
-            <div class="menu-card" onclick="goTo('landing')">
-                <img src="#U8cc7#U7522 7.svg" class="menu-svg" alt="liminalsynths">
-                <div class="menu-filename">#U8cc7#U7522 7.svg</div>
+        <div class="menu-stack">
+            <div class="menu-stack-inner">
+                <div class="menu-link" onclick="goTo('about')"><img src="SVG/about.svg" alt="about"></div>
+                <div class="menu-link" onclick="goTo('contact')"><img src="SVG/contact.svg" alt="contact"></div>
+                <div class="menu-link" onclick="goTo('poster')"><img src="SVG/poster.svg" alt="poster"></div>
+                <div class="menu-link" onclick="goTo('typographic')"><img src="SVG/typographic.svg" alt="typographic"></div>
+                <div class="menu-link" onclick="goTo('illustration')"><img src="SVG/illustration.svg" alt="illustration"></div>
+                <div class="menu-link" onclick="goTo('project')"><img src="SVG/project.svg" alt="project"></div>
             </div>
         </div>
     </div>
 
     <div id="about" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="bg-gray-200 p-10 max-w-2xl text-center text-xl leading-relaxed" style="transform: translateY(80px);">
             In the liminal state between<br>
             medium and concept, synths emerge.<br><br>
@@ -142,7 +126,7 @@
     </div>
 
     <div id="contact" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="text-center" style="transform: translateY(40px);">
             <div class="meta-text" style="font-size:16px;">liminalsynths@gmail.com</div>
             <div class="meta-text" style="font-size:16px;">@liminalsynths</div>
@@ -150,7 +134,7 @@
     </div>
 
     <div id="poster" class="page" style="background: white;">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
         <!-- 對齊檔案二：頁1（大片留白＋散落拼貼） -->
         <img src="image/iridescent 2017.jpg" class="floating-img w-44" style="top:18%; left:8%;" onclick="goTo('detail')">
@@ -163,7 +147,7 @@
     </div>
 
     <div id="detail" class="page">
-        <div class="back-arrow" onclick="goTo('poster')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('poster')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
         <!-- 對齊檔案二：頁2（左側資訊＋右側大圖） -->
         <div class="w-full h-full relative">
@@ -186,7 +170,7 @@
 
     <!-- typographic（對齊檔案二：頁3） -->
     <div id="typographic" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
         <div class="w-full h-full flex items-center justify-center">
             <div class="shadow-type text-left" data-text="about\ncontact\nposter\ntypographic\nillustration\nproject" style="font-family: NeueMetanaNext, sans-serif; font-size: 86px; line-height: 0.92; letter-spacing: -0.03em;">
@@ -202,14 +186,14 @@
 
     <!-- illustration / project：先放同版式 placeholder，之後換你的內容 -->
     <div id="illustration" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="meta-text" style="font-size:18px;">illustration (coming soon)</div>
         </div>
     </div>
 
     <div id="project" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="資產 8.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="meta-text" style="font-size:18px;">project (coming soon)</div>
         </div>
