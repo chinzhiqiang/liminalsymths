@@ -142,7 +142,7 @@ body, .page, .clickable, button, a, img { cursor: none; }
 #customCursor{
   position: fixed;
   top: 0; left: 0;
-  width: 32px; height: 32px;
+  width: 16px; height: 16px;
   pointer-events: none;
   z-index: 9999;
   transform: translate(-100px, -100px);
@@ -159,7 +159,7 @@ body, .page, .clickable, button, a, img { cursor: none; }
     <!-- landing（對齊檔案二：頁6） -->
     <div id="landing" class="page active">
         <div class="w-full h-full flex items-center justify-center">
-            <img src="SVG/liminalsynths-logo.svg" class="landing-logo clickable" alt="liminalsynths" onclick="goTo('menu')">
+            <img src="SVG/liminalsynths-logo.svg" id="landingLogo" class="landing-logo clickable" alt="liminalsynths" onclick="goTo('menu')">
         </div>
     </div>
 
@@ -322,6 +322,15 @@ body, .page, .clickable, button, a, img { cursor: none; }
   cursor.src = 'SVG/mouse.svg';
   cursor.alt = 'cursor';
   document.body.appendChild(cursor);
+  // Landing logo hover swap (white -> blue)
+  const landingLogo = document.getElementById('landingLogo');
+  if (landingLogo) {
+    const logoNormal = 'SVG/liminalsynths-logo.svg';
+    const logoBlue = 'SVG/liminalsynths-logo blue.svg';
+    landingLogo.addEventListener('mouseenter', () => { landingLogo.src = logoBlue; });
+    landingLogo.addEventListener('mouseleave', () => { landingLogo.src = logoNormal; });
+  }
+
 
   // keep cursor centered on the pointer
   const placeCursor = (x, y, scale=1) => {
@@ -364,18 +373,27 @@ body, .page, .clickable, button, a, img { cursor: none; }
 
     const states = items.map((el) => {
       const rect = el.getBoundingClientRect();
+      const rand = () => Math.random();
       return {
         el,
-        // base position in px (from current layout)
         baseX: rect.left,
         baseY: rect.top,
-        // size
         w: rect.width,
         h: rect.height,
-        // offsets + velocity
+        // physics offsets
         x: 0, y: 0,
-        vx: (Math.random() - 0.5) * 10,
-        vy: (Math.random() - 0.5) * 10
+        vx: (rand() - 0.5) * 6,
+        vy: (rand() - 0.5) * 6,
+        // idle float params (water-like drift)
+        phx: rand() * Math.PI * 2,
+        phy: rand() * Math.PI * 2,
+        ampx: 6 + rand() * 10,
+        ampy: 6 + rand() * 10,
+        fx: 0.15 + rand() * 0.18,
+        fy: 0.15 + rand() * 0.18,
+        // cached float offset
+        floatX: 0,
+        floatY: 0
       };
     });
 
@@ -383,127 +401,142 @@ body, .page, .clickable, button, a, img { cursor: none; }
     const rebake = () => {
       states.forEach(s => {
         const r = s.el.getBoundingClientRect();
-        s.baseX = r.left - s.x;
-        s.baseY = r.top - s.y;
+        // keep current visual position = base + x + float
+        s.baseX = r.left - s.x - s.floatX;
+        s.baseY = r.top - s.y - s.floatY;
         s.w = r.width;
         s.h = r.height;
       });
     };
     window.addEventListener('resize', () => requestAnimationFrame(rebake));
 
-    // dragging detection + mouse delta
-    let dragging = false;
-    let lastX = 0, lastY = 0;
+    // pointer tracking for "tug" effect on hover
+    const pointer = { x: -9999, y: -9999, dx: 0, dy: 0, lastX: -9999, lastY: -9999 };
+    document.addEventListener('mousemove', (e) => {
+      if (!poster.classList.contains('active')) return;
+      pointer.dx = e.clientX - pointer.lastX;
+      pointer.dy = e.clientY - pointer.lastY;
+      pointer.lastX = e.clientX;
+      pointer.lastY = e.clientY;
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+    });
 
-    const findStateFromEl = (el) => {
-      if (!el) return null;
-      const img = el.closest && el.closest('img.floating-img');
+    const findStateFromPoint = (x, y) => {
+      const hit = document.elementFromPoint(x, y);
+      if (!hit) return null;
+      const img = hit.closest && hit.closest('img.floating-img');
       if (!img) return null;
       return states.find(s => s.el === img) || null;
     };
 
-    document.addEventListener('mousedown', (e) => {
+    // physics constants
+    const overlapLimit = 1/3;       // <-- stricter: don't overlap more than 1/3
+    const friction = 0.90;
+    const maxSpeed = 40;
+    const edgeBounce = 0.55;
+
+    // hover/tug tuning
+    const dragImpulse = 0.65;       // how much the hovered item follows cursor movement
+    const attractImpulse = 0.018;   // how much it "leans" toward cursor even when cursor stops
+    const neighborRadius = 300;
+    const neighborFalloff = 0.22;
+
+    // collision tuning
+    const repel = 0.014;            // velocity push
+    const pushOut = 20;             // positional correction
+
+    let lastT = performance.now();
+
+    function step(t) {
+      requestAnimationFrame(step);
       if (!poster.classList.contains('active')) return;
-      dragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-    });
 
-    document.addEventListener('mouseup', () => {
-      dragging = false;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!poster.classList.contains('active')) return;
-      if (!dragging) return;
-
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
-
-      // only when actually moving
-      if (Math.abs(dx) + Math.abs(dy) < 0.5) return;
-
-      const hit = document.elementFromPoint(e.clientX, e.clientY);
-      const s = findStateFromEl(hit);
-      if (!s) return;
-
-      // impulse in drag direction (visible drift, but still subtle)
-      const impulse = 0.9;
-      s.vx += dx * impulse;
-      s.vy += dy * impulse;
-
-      // also nudge neighbors slightly (gives "flow" feeling)
-      const cx = (s.baseX + s.x) + s.w/2;
-      const cy = (s.baseY + s.y) + s.h/2;
-
-      states.forEach(o => {
-        if (o === s) return;
-        const ocx = (o.baseX + o.x) + o.w/2;
-        const ocy = (o.baseY + o.y) + o.h/2;
-        const d = Math.hypot(ocx - cx, ocy - cy);
-        if (d < 260) {
-          const falloff = (1 - d/260) * 0.35;
-          o.vx += dx * impulse * falloff;
-          o.vy += dy * impulse * falloff;
-        }
-      });
-    });
-
-    // physics params
-    const overlapLimit = 2/3;   // max overlap ratio of smaller image area
-    const friction = 0.88;      // damping
-    const maxSpeed = 55;        // cap
-    const edgeBounce = 0.55;    // rebound on edges
-    const repel = 0.010;        // collision push factor
-
-    function step() {
-      if (!poster.classList.contains('active')) {
-        requestAnimationFrame(step);
-        return;
-      }
+      const dt = Math.min(0.032, Math.max(0.010, (t - lastT) / 1000));
+      lastT = t;
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
+      const margin = 10;
 
-      // integrate motion
+      // ---- idle float (water surface) ----
       for (const s of states) {
-        // clamp speed
+        // slow drifting offset
+        s.floatX = Math.sin(t * 0.001 * (s.fx * 60) + s.phx) * s.ampx;
+        s.floatY = Math.cos(t * 0.001 * (s.fy * 60) + s.phy) * s.ampy;
+      }
+
+      // ---- hover tug (no need to drag) ----
+      const hovered = findStateFromPoint(pointer.x, pointer.y);
+      if (hovered) {
+        // 1) follow cursor movement a bit
+        const md = Math.abs(pointer.dx) + Math.abs(pointer.dy);
+        if (md > 0.2) {
+          hovered.vx += pointer.dx * dragImpulse;
+          hovered.vy += pointer.dy * dragImpulse;
+        }
+
+        // 2) slight attraction toward cursor (even when cursor is slow)
+        const cx = (hovered.baseX + hovered.x + hovered.floatX) + hovered.w / 2;
+        const cy = (hovered.baseY + hovered.y + hovered.floatY) + hovered.h / 2;
+        const ax = pointer.x - cx;
+        const ay = pointer.y - cy;
+        hovered.vx += ax * attractImpulse;
+        hovered.vy += ay * attractImpulse;
+
+        // 3) nudge neighbors a little (water ripple)
+        states.forEach(o => {
+          if (o === hovered) return;
+          const ocx = (o.baseX + o.x + o.floatX) + o.w/2;
+          const ocy = (o.baseY + o.y + o.floatY) + o.h/2;
+          const d = Math.hypot(ocx - cx, ocy - cy);
+          if (d < neighborRadius) {
+            const falloff = (1 - d / neighborRadius) * neighborFalloff;
+            o.vx += (pointer.dx * dragImpulse) * falloff;
+            o.vy += (pointer.dy * dragImpulse) * falloff;
+
+            // a tiny attraction ripple as well
+            o.vx += (ax * attractImpulse) * falloff * 0.5;
+            o.vy += (ay * attractImpulse) * falloff * 0.5;
+          }
+        });
+      }
+
+      // ---- integrate ----
+      for (const s of states) {
         const sp = Math.hypot(s.vx, s.vy);
         if (sp > maxSpeed) {
           s.vx = (s.vx / sp) * maxSpeed;
           s.vy = (s.vy / sp) * maxSpeed;
         }
 
-        s.x += s.vx * 0.016;
-        s.y += s.vy * 0.016;
+        s.x += s.vx * dt * 60;
+        s.y += s.vy * dt * 60;
 
         s.vx *= friction;
         s.vy *= friction;
 
-        // edge constraints (keep some margin)
-        const left = s.baseX + s.x;
-        const top  = s.baseY + s.y;
+        // edges (consider float offset)
+        const left = s.baseX + s.x + s.floatX;
+        const top = s.baseY + s.y + s.floatY;
         const right = left + s.w;
         const bottom = top + s.h;
 
-        const margin = 10;
         if (left < margin) { s.x += (margin - left); s.vx *= -edgeBounce; }
         if (top < margin) { s.y += (margin - top); s.vy *= -edgeBounce; }
         if (right > vw - margin) { s.x -= (right - (vw - margin)); s.vx *= -edgeBounce; }
         if (bottom > vh - margin) { s.y -= (bottom - (vh - margin)); s.vy *= -edgeBounce; }
       }
 
-      // pairwise overlap control (bounce when overlap too high)
+      // ---- collision: keep overlap <= 1/3, with soft bounce ----
       for (let i = 0; i < states.length; i++) {
         for (let j = i + 1; j < states.length; j++) {
           const a = states[i], b = states[j];
 
-          const ax1 = a.baseX + a.x, ay1 = a.baseY + a.y;
-          const ax2 = ax1 + a.w,    ay2 = ay1 + a.h;
-          const bx1 = b.baseX + b.x, by1 = b.baseY + b.y;
-          const bx2 = bx1 + b.w,     by2 = by1 + b.h;
+          const ax1 = a.baseX + a.x + a.floatX, ay1 = a.baseY + a.y + a.floatY;
+          const ax2 = ax1 + a.w,              ay2 = ay1 + a.h;
+          const bx1 = b.baseX + b.x + b.floatX, by1 = b.baseY + b.y + b.floatY;
+          const bx2 = bx1 + b.w,               by2 = by1 + b.h;
 
           const ix = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
           const iy = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
@@ -514,23 +547,23 @@ body, .page, .clickable, button, a, img { cursor: none; }
           const ratio = interArea / (minArea || 1);
 
           if (ratio > overlapLimit) {
-            // push away along center-to-center direction
+            // push direction between centers
             const acx = ax1 + a.w/2, acy = ay1 + a.h/2;
             const bcx = bx1 + b.w/2, bcy = by1 + b.h/2;
+
             let dx = bcx - acx;
             let dy = bcy - acy;
             const d = Math.hypot(dx, dy) || 1;
             dx /= d; dy /= d;
 
-            const strength = (ratio - overlapLimit) * 1400;
+            const strength = (ratio - overlapLimit) * 1200;
 
             a.vx -= dx * strength * repel;
             a.vy -= dy * strength * repel;
             b.vx += dx * strength * repel;
             b.vy += dy * strength * repel;
 
-            // positional correction (prevents "sticking" when overlap is deep)
-            const push = (ratio - overlapLimit) * 18;
+            const push = (ratio - overlapLimit) * pushOut;
             a.x -= dx * push;
             a.y -= dy * push;
             b.x += dx * push;
@@ -539,12 +572,12 @@ body, .page, .clickable, button, a, img { cursor: none; }
         }
       }
 
-      // apply transforms
+      // ---- render ----
       for (const s of states) {
-        s.el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
+        const tx = s.x + s.floatX;
+        const ty = s.y + s.floatY;
+        s.el.style.transform = `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px)`;
       }
-
-      requestAnimationFrame(step);
     }
 
     requestAnimationFrame(step);
