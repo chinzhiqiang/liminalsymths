@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>liminalsynths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -152,6 +152,59 @@ body, .page, .clickable, button, a, img { cursor: none; }
 #customCursor.down{
   transform: translate(-100px, -100px) scale(0.88);
 }
+
+/* -----------------------------
+   TOUCH / MOBILE SAFETY LAYER
+   - Do NOT affect desktop layout
+   - Restore system cursor on touch
+   - Tweak sizes/positions for small screens
+------------------------------ */
+
+html.is-touch body,
+html.is-touch .page,
+html.is-touch .clickable,
+html.is-touch button,
+html.is-touch a,
+html.is-touch img {
+  cursor: auto !important;
+}
+
+html.is-touch #customCursor{ display:none !important; }
+
+@media (max-width: 768px){
+  /* allow the UI to breathe on mobile without touching desktop */
+  .back-arrow{ top: 18px; right: 18px; }
+  .back-icon{ width: 26px; height: 26px; }
+
+  /* Menu scaling (keeps the same design, just fits screen) */
+  .menu-swap{ width: min(560px, 92vw); }
+  .menu-link + .menu-link{ margin-top: -12px; }
+
+  /* About box: readable on mobile */
+  #about .about-box{ width: min(520px, 88vw) !important; padding: 22px !important; font-size: 16px !important; }
+
+  /* Typographic page: prevent cropping */
+  #typographic .shadow-type{ font-size: 54px !important; }
+
+  /* Poster assets: scale down a bit for small screens */
+  .w-44{ width: 8.5rem; }
+  .w-56{ width: 10.5rem; }
+  .w-60{ width: 11.25rem; }
+  .w-64{ width: 12rem; }
+  .w-72{ width: 13rem; }
+
+  /* Detail layout: stack and fit */
+  #detail .small-title{ font-size: 18px; }
+  #detail .meta-text{ font-size: 12px; }
+}
+
+/* Desktop-only: About page text + grey box scale down by 0.5 (per request) */
+@media (min-width: 769px){
+  #about .about-box{
+    transform: scale(0.5);
+    transform-origin: center;
+  }
+}
 </style>
 </head>
 <body>
@@ -185,7 +238,7 @@ body, .page, .clickable, button, a, img { cursor: none; }
     <div id="about" class="page">
         <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
-            <div class="bg-gray-200 p-10 text-center text-xl leading-relaxed" style="width: min(680px, 84vw);">
+            <div class="about-box bg-gray-200 p-10 text-center text-xl leading-relaxed" style="width: min(680px, 84vw);">
                 In the liminal state between<br>
                 medium and concept, synths emerge.<br><br>
                 features visual creations<br>
@@ -273,6 +326,9 @@ body, .page, .clickable, button, a, img { cursor: none; }
     
 <script>
 (() => {
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  if (isTouch) document.documentElement.classList.add('is-touch');
+
   const pages = document.querySelectorAll('.page');
 
   function goTo(pageId) {
@@ -317,11 +373,14 @@ body, .page, .clickable, button, a, img { cursor: none; }
   }
 
   // -------- Custom cursor (SVG/mouse.svg) --------
-  const cursor = document.createElement('img');
-  cursor.id = 'customCursor';
-  cursor.src = 'SVG/mouse.svg';
-  cursor.alt = 'cursor';
-  document.body.appendChild(cursor);
+  let cursor = null;
+  if (!isTouch) {
+    cursor = document.createElement('img');
+    cursor.id = 'customCursor';
+    cursor.src = 'SVG/mouse.svg';
+    cursor.alt = 'cursor';
+    document.body.appendChild(cursor);
+  }
   // Landing logo hover swap (white -> blue)
   const landingLogo = document.getElementById('landingLogo');
   if (landingLogo) {
@@ -334,27 +393,30 @@ body, .page, .clickable, button, a, img { cursor: none; }
 
   // keep cursor centered on the pointer
   const placeCursor = (x, y, scale=1) => {
+    if (!cursor) return;
     cursor.style.left = x + 'px';
     cursor.style.top  = y + 'px';
     cursor.style.transform = `translate(-50%, -50%) scale(${scale})`;
   };
 
   let lastX = -100, lastY = -100;
-  document.addEventListener('mousemove', (e) => {
-    lastX = e.clientX;
-    lastY = e.clientY;
-    placeCursor(lastX, lastY, cursor.classList.contains('down') ? 0.88 : 1);
-  });
+  if (cursor) {
+    document.addEventListener('mousemove', (e) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      placeCursor(lastX, lastY, cursor.classList.contains('down') ? 0.88 : 1);
+    });
 
-  document.addEventListener('mousedown', () => {
-    cursor.classList.add('down');
-    placeCursor(lastX, lastY, 0.88);
-  });
+    document.addEventListener('mousedown', () => {
+      cursor.classList.add('down');
+      placeCursor(lastX, lastY, 0.88);
+    });
 
-  document.addEventListener('mouseup', () => {
-    cursor.classList.remove('down');
-    placeCursor(lastX, lastY, 1);
-  });
+    document.addEventListener('mouseup', () => {
+      cursor.classList.remove('down');
+      placeCursor(lastX, lastY, 1);
+    });
+  }
 
   // -------- Poster interactions: drag drift + collision bounce ---: drag drift + collision bounce --------
   let posterInited = false;
@@ -412,15 +474,39 @@ body, .page, .clickable, button, a, img { cursor: none; }
 
     // pointer tracking for "tug" effect on hover
     const pointer = { x: -9999, y: -9999, dx: 0, dy: 0, lastX: -9999, lastY: -9999 };
+    const updatePointer = (x, y) => {
+      pointer.dx = x - pointer.lastX;
+      pointer.dy = y - pointer.lastY;
+      pointer.lastX = x;
+      pointer.lastY = y;
+      pointer.x = x;
+      pointer.y = y;
+    };
+
     document.addEventListener('mousemove', (e) => {
       if (!poster.classList.contains('active')) return;
-      pointer.dx = e.clientX - pointer.lastX;
-      pointer.dy = e.clientY - pointer.lastY;
-      pointer.lastX = e.clientX;
-      pointer.lastY = e.clientY;
-      pointer.x = e.clientX;
-      pointer.y = e.clientY;
+      updatePointer(e.clientX, e.clientY);
     });
+
+    document.addEventListener('touchstart', (e) => {
+      if (!poster.classList.contains('active')) return;
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      // initialize last to avoid giant impulse
+      pointer.lastX = t.clientX;
+      pointer.lastY = t.clientY;
+      pointer.x = t.clientX;
+      pointer.y = t.clientY;
+      pointer.dx = 0;
+      pointer.dy = 0;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!poster.classList.contains('active')) return;
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      updatePointer(t.clientX, t.clientY);
+    }, { passive: true });
 
     const findStateFromPoint = (x, y) => {
       const hit = document.elementFromPoint(x, y);
