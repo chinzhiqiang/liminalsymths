@@ -184,8 +184,6 @@
         </div>
     </div>
 </div>
-</div>
-    </div>
 
     <div id="about" class="page">
         <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
@@ -277,259 +275,73 @@
 
     
 <script>
+  // -------- Page routing --------
+  const pages = Array.from(document.querySelectorAll('.page'));
 
-    const pages = document.querySelectorAll('.page');
+  function goTo(pageId) {
+    pages.forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(pageId);
+    if (target) target.classList.add('active');
 
-    function goTo(pageId) {
-        pages.forEach(page => page.classList.remove('active'));
-        const target = document.getElementById(pageId);
-        if (target) target.classList.add('active');
+    if (pageId === 'menu') initMenuSwap();
+  }
 
-        // Init per-page interactions
-        if (pageId === 'menu') initMenuSwap();
-        if (pageId === 'poster') initPosterInteraction();
-    }
+  // Expose for inline onclick
+  window.goTo = goTo;
 
-    // -------- Menu hover swap (single SVG + hotspots) --------
-    let menuInited = false;
-    function initMenuSwap() {
-  const menuGraphic = document.getElementById('menuGraphic');
-  const hotspots = document.querySelectorAll('.menuHotspot');
-  if (!menuGraphic || !hotspots.length) return;
+  // -------- Menu hover swap (single SVG + hotspots) --------
+  let menuInited = false;
+  function initMenuSwap() {
+    if (menuInited) return;
+    menuInited = true;
 
-  const baseSrc = 'SVG/original.svg';
+    const menuSvg = document.getElementById('menuSvg');
+    const buttons = Array.from(document.querySelectorAll('.menu-hotspot'));
+    if (!menuSvg || !buttons.length) return;
 
-  hotspots.forEach((hs) => {
-    const hoverSrc = hs.getAttribute('data-hover');
-    hs.addEventListener('mouseenter', () => {
-      if (hoverSrc) menuGraphic.src = hoverSrc;
-    });
-    hs.addEventListener('mouseleave', () => {
-      menuGraphic.src = baseSrc;
-    });
-  });
-}
-);
-            btn.addEventListener('mouseleave', () => {
-                menuSvg.src = originalSrc;
-            });
-            btn.addEventListener('click', () => {
-                if (target) goTo(target);
-            });
-        });
+    const originalSrc = menuSvg.getAttribute('src') || 'SVG/original.svg';
 
-        // safety reset
+    buttons.forEach(btn => {
+      const hoverSrc = btn.getAttribute('data-src');
+      const target = btn.getAttribute('data-target');
+
+      btn.addEventListener('mouseenter', () => {
+        if (hoverSrc) menuSvg.src = hoverSrc;
+      });
+
+      btn.addEventListener('mouseleave', () => {
         menuSvg.src = originalSrc;
-    }
+      });
 
-    // -------- Custom cursor (black dot) --------
+      btn.addEventListener('click', () => {
+        if (target) goTo(target);
+      });
+
+      // Better mobile support
+      btn.addEventListener('touchstart', () => {
+        if (hoverSrc) menuSvg.src = hoverSrc;
+      }, { passive: true });
+    });
+
+    // safety reset
+    menuSvg.src = originalSrc;
+  }
+
+  // -------- Custom cursor (black dot) --------
+  (function setupCursor(){
     const cursor = document.createElement('div');
     cursor.id = 'customCursor';
     document.body.appendChild(cursor);
 
     document.addEventListener('mousemove', (e) => {
-        cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+      cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
     });
-
     document.addEventListener('mousedown', () => cursor.classList.add('down'));
     document.addEventListener('mouseup', () => cursor.classList.remove('down'));
+  })();
 
-    // -------- Poster interactions: drift + ripple + collision bounce --------
-    let posterInited = false;
-
-    function initPosterInteraction() {
-        if (posterInited) return;
-        posterInited = true;
-
-        const posterContainer = document.querySelector('#poster .poster-container');
-        if (!posterContainer) return;
-
-        const items = Array.from(posterContainer.querySelectorAll('.poster-item'));
-        if (!items.length) return;
-
-        // Disable any accidental shadow
-        items.forEach(el => el.style.boxShadow = 'none');
-
-        // State per image
-        const states = items.map(el => {
-            const left = parseFloat(getComputedStyle(el).left) || 0;
-            const top  = parseFloat(getComputedStyle(el).top) || 0;
-            const w = el.offsetWidth;
-            const h = el.offsetHeight;
-            return {
-                el,
-                baseX: left,
-                baseY: top,
-                x: 0, y: 0,
-                vx: 0, vy: 0,
-                w, h,
-                hover: 0,
-            };
-        });
-
-        // Recalculate sizes on resize (responsive)
-        const syncSizes = () => {
-            states.forEach(s => {
-                s.w = s.el.offsetWidth;
-                s.h = s.el.offsetHeight;
-            });
-        };
-        window.addEventListener('resize', syncSizes);
-
-        // Hover "butterfly effect": lightly tug neighbors
-        states.forEach((s, idx) => {
-            s.el.addEventListener('mouseenter', () => { s.hover = 1; });
-            s.el.addEventListener('mouseleave', () => { s.hover = 0; });
-        });
-
-        // Drag influence
-        let isDown = false;
-        let lastX = 0, lastY = 0;
-
-        posterContainer.addEventListener('pointerdown', (e) => {
-            isDown = true;
-            lastX = e.clientX;
-            lastY = e.clientY;
-            posterContainer.setPointerCapture(e.pointerId);
-        });
-
-        posterContainer.addEventListener('pointerup', (e) => {
-            isDown = false;
-            try { posterContainer.releasePointerCapture(e.pointerId); } catch {}
-        });
-
-        posterContainer.addEventListener('pointercancel', () => { isDown = false; });
-
-        posterContainer.addEventListener('pointermove', (e) => {
-            if (!isDown) return;
-
-            const dx = e.clientX - lastX;
-            const dy = e.clientY - lastY;
-            lastX = e.clientX;
-            lastY = e.clientY;
-
-            const rect = posterContainer.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-
-            // apply impulse to nearby images
-            const radius = 220; // px
-            states.forEach(s => {
-                const cx = (s.baseX + s.x) + s.w / 2;
-                const cy = (s.baseY + s.y) + s.h / 2;
-                const dist = Math.hypot(cx - mx, cy - my);
-                if (dist < radius) {
-                    const fall = (1 - dist / radius);
-                    s.vx += dx * 0.25 * fall;
-                    s.vy += dy * 0.25 * fall;
-                }
-            });
-        });
-
-        // Physics loop
-        function step() {
-            // Springs back to base + damping
-            const spring = 0.02;
-            const damp = 0.90;
-
-            // Hover ripple nudges
-            const hoverKick = 0.8;
-
-            // Collision response settings
-            const overlapLimit = 0.66; // don't exceed 2/3 overlap
-            const bounce = 0.45;       // rebound strength
-            const repel = 0.015;       // soft separation
-
-            // Apply hover influence
-            states.forEach((s,i) => {
-                if (s.hover > 0) {
-                    states.forEach((t,j) => {
-                        if (i === j) return;
-                        const dx = (t.baseX + t.x + t.w/2) - (s.baseX + s.x + s.w/2);
-                        const dy = (t.baseY + t.y + t.h/2) - (s.baseY + s.y + s.h/2);
-                        const d = Math.hypot(dx, dy) || 1;
-                        const r = 260;
-                        if (d < r) {
-                            const f = (1 - d/r) * hoverKick;
-                            t.vx += (dx/d) * f * 0.12;
-                            t.vy += (dy/d) * f * 0.12;
-                        }
-                    });
-                }
-            });
-
-            // Pairwise collisions based on overlap ratio
-            for (let i = 0; i < states.length; i++) {
-                for (let j = i + 1; j < states.length; j++) {
-                    const a = states[i], b = states[j];
-
-                    const ax1 = a.baseX + a.x, ay1 = a.baseY + a.y;
-                    const ax2 = ax1 + a.w,    ay2 = ay1 + a.h;
-                    const bx1 = b.baseX + b.x, by1 = b.baseY + b.y;
-                    const bx2 = bx1 + b.w,     by2 = by1 + b.h;
-
-                    const ix = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
-                    const iy = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
-                    if (ix <= 0 || iy <= 0) continue;
-
-                    const interArea = ix * iy;
-                    const minArea = Math.min(a.w * a.h, b.w * b.h);
-                    const ratio = interArea / (minArea || 1);
-
-                    if (ratio > overlapLimit) {
-                        // push away along center-to-center
-                        const acx = ax1 + a.w/2, acy = ay1 + a.h/2;
-                        const bcx = bx1 + b.w/2, bcy = by1 + b.h/2;
-                        let dx = bcx - acx;
-                        let dy = bcy - acy;
-                        const d = Math.hypot(dx, dy) || 1;
-                        dx /= d; dy /= d;
-
-                        const strength = (ratio - overlapLimit) * 120;
-                        a.vx -= dx * strength * repel;
-                        a.vy -= dy * strength * repel;
-                        b.vx += dx * strength * repel;
-                        b.vy += dy * strength * repel;
-
-                        // rebound
-                        a.vx *= (1 - bounce);
-                        a.vy *= (1 - bounce);
-                        b.vx *= (1 - bounce);
-                        b.vy *= (1 - bounce);
-                    }
-                }
-            }
-
-            // Integrate
-            states.forEach(s => {
-                // spring back to origin
-                s.vx += (-s.x) * spring;
-                s.vy += (-s.y) * spring;
-
-                s.vx *= damp;
-                s.vy *= damp;
-
-                s.x += s.vx;
-                s.y += s.vy;
-
-                // Clamp drift so it stays subtle
-                const maxDrift = 42;
-                s.x = Math.max(-maxDrift, Math.min(maxDrift, s.x));
-                s.y = Math.max(-maxDrift, Math.min(maxDrift, s.y));
-
-                s.el.style.transform = `translate(${s.x}px, ${s.y}px)`;
-            });
-
-            requestAnimationFrame(step);
-        }
-
-        requestAnimationFrame(step);
-    }
-
-    window.onload = () => {
-        initMenuSwap();
-    };
-
+  // Optional: start clean on landing
+  // goTo('landing');
 </script>
 
 </body>
