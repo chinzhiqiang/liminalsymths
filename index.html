@@ -6,11 +6,18 @@
 <title>liminalsynths</title>
 
 <style>
+  @font-face{
+    font-family: "NeueMetanaNext-SemiBold";
+    src: url("fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+  }
+
   html, body {
     margin: 0;
     height: 100%;
     background: #fff;
-    font-family: "NeueMetanaNext-SemiBold";
+    font-family: "NeueMetanaNext-SemiBold", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   }
 
   /* 全站隱藏原生游標 */
@@ -43,17 +50,16 @@
   #landing img{
     width: min(520px, 70vw);
     height: auto;
-    cursor: none;
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
   /* menu */
   #menu { display: none; }
 
-  /* 讓 menu 真正置中、且響應式縮放 */
   .menu-wrap{
     position: relative;
     width: min(980px, 88vw);
-    /* 這個 max-height 可以避免超高螢幕時看起來飄上去 */
     max-height: 82vh;
     display: flex;
     align-items: center;
@@ -81,25 +87,17 @@
     left: 50%;
     transform: translateX(-50%);
     width: 88%;
-    /* 可視化 debug：想看熱區就把下面註解拿掉 */
-    /* background: rgba(0, 120, 255, 0.12); */
+    cursor: none;
   }
 
-  /*
-    ✅ 這組百分比是為了貼合你那張「六行堆疊字」的版面
-    如果你覺得某行 hover 還是不夠準，只要微調 top/height 就好
-  */
-  .hs-about       { top:  6.5%; height: 14.5%; }
-  .hs-contact     { top: 19.5%; height: 14.5%; }
-  .hs-poster      { top: 32.5%; height: 14.5%; }
-  .hs-typographic { top: 45.5%; height: 14.5%; }
-  .hs-illustration{ top: 58.5%; height: 14.5%; }
-  .hs-project     { top: 71.5%; height: 16.0%; } /* 最下面通常略高一點比較好吃 */
+  /* 你要的「上下有一咪咪重疊」 */
+  .hs-about        { top:  6.5%; height: 15.0%; }
+  .hs-contact      { top: 19.2%; height: 15.0%; }
+  .hs-poster       { top: 31.9%; height: 15.0%; }
+  .hs-typographic  { top: 44.6%; height: 15.0%; }
+  .hs-illustration { top: 57.3%; height: 15.0%; }
+  .hs-project      { top: 70.0%; height: 17.0%; }
 
-  /* 手感：熱區本身不顯示游標，但仍可點 */
-  .hotspot { cursor: none; }
-
-  /* 防止圖片載入前跳動 */
   img { image-rendering: auto; }
 </style>
 </head>
@@ -109,102 +107,201 @@
 
 <!-- Landing -->
 <section id="landing" class="center">
-  <img id="enterBtn" src="SVG/資產 7.svg" alt="liminalsynths"/>
+  <img id="enterBtn" alt="liminalsynths"/>
 </section>
 
 <!-- Menu -->
 <section id="menu" class="center">
-  <div class="menu-wrap" id="menuWrap">
-    <img id="menuSvg" src="SVG/original.svg" alt="menu"/>
+  <div class="menu-wrap">
+    <img id="menuSvg" alt="menu"/>
 
     <div class="menu-hotspots" aria-hidden="true">
-      <div class="hotspot hs-about"
-           data-src="SVG/about.svg"
-           data-link="about.html"></div>
-
-      <div class="hotspot hs-contact"
-           data-src="SVG/contact.svg"
-           data-link="contact.html"></div>
-
-      <div class="hotspot hs-poster"
-           data-src="SVG/poster.svg"
-           data-link="poster.html"></div>
-
-      <div class="hotspot hs-typographic"
-           data-src="SVG/typographic.svg"
-           data-link="typographic.html"></div>
-
-      <div class="hotspot hs-illustration"
-           data-src="SVG/illustration.svg"
-           data-link="illustration.html"></div>
-
-      <div class="hotspot hs-project"
-           data-src="SVG/project.svg"
-           data-link="project.html"></div>
+      <div class="hotspot hs-about"        data-key="about"></div>
+      <div class="hotspot hs-contact"      data-key="contact"></div>
+      <div class="hotspot hs-poster"       data-key="poster"></div>
+      <div class="hotspot hs-typographic"  data-key="typographic"></div>
+      <div class="hotspot hs-illustration" data-key="illustration"></div>
+      <div class="hotspot hs-project"      data-key="project"></div>
     </div>
   </div>
 </section>
 
 <script>
-  /* 黑色點點游標 */
-  const cursor = document.getElementById("cursor");
-  window.addEventListener("mousemove", (e) => {
-    cursor.style.left = e.clientX + "px";
-    cursor.style.top  = e.clientY + "px";
+/* =========================
+   游標：黑色點點
+========================= */
+const cursor = document.getElementById("cursor");
+window.addEventListener("mousemove", (e) => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top  = e.clientY + "px";
+});
+
+/* =========================
+   資產自動探測（避免路徑不一致）
+   會依序試：SVG/、svg/、assets/、根目錄
+========================= */
+const ASSET_BASES = ["SVG/", "svg/", "assets/", "Assets/", ""];
+const ASSET_FILES = {
+  landing: ["資產 7.svg", "asset7.svg", "Asset 7.svg"],
+  original: ["original.svg", "Original.svg"],
+  about: ["about.svg", "About.svg"],
+  contact: ["contact.svg", "Contact.svg"],
+  poster: ["poster.svg", "Poster.svg"],
+  typographic: ["typographic.svg", "Typographic.svg"],
+  illustration: ["illustration.svg", "Illustration.svg"],
+  project: ["project.svg", "Project.svg"]
+};
+
+function tryLoad(url){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(url);
+    img.onerror = () => resolve(null);
+    img.src = url + (url.includes("?") ? "" : `?v=${Date.now()}`); // 防快取
   });
+}
 
-  const landing = document.getElementById("landing");
-  const menu = document.getElementById("menu");
-  const enterBtn = document.getElementById("enterBtn");
-  const menuSvg = document.getElementById("menuSvg");
+async function resolveAsset(key){
+  const names = ASSET_FILES[key] || [];
+  for (const base of ASSET_BASES){
+    for (const name of names){
+      const url = base + name;
+      const ok = await tryLoad(url);
+      if (ok) return ok;
+    }
+  }
+  return null;
+}
 
-  function showMenu(){
-    landing.style.display = "none";
-    menu.style.display = "flex";
+/* =========================
+   子頁路徑自動探測（避免 404）
+   會先 fetch 檢查存在再跳轉
+========================= */
+const PAGE_CANDIDATES = {
+  about: [
+    "about.html", "About.html",
+    "about/index.html", "About/index.html",
+    "pages/about.html", "Pages/about.html"
+  ],
+  contact: [
+    "contact.html", "Contact.html",
+    "contact/index.html", "Contact/index.html",
+    "pages/contact.html", "Pages/contact.html"
+  ],
+  poster: [
+    "poster.html", "Poster.html",
+    "poster/index.html", "Poster/index.html",
+    "pages/poster.html", "Pages/poster.html"
+  ],
+  typographic: [
+    "typographic.html", "Typographic.html",
+    "typographic/index.html", "Typographic/index.html",
+    "pages/typographic.html", "Pages/typographic.html"
+  ],
+  illustration: [
+    "illustration.html", "Illustration.html",
+    "illustration/index.html", "Illustration/index.html",
+    "pages/illustration.html", "Pages/illustration.html"
+  ],
+  project: [
+    "project.html", "Project.html",
+    "project/index.html", "Project/index.html",
+    "pages/project.html", "Pages/project.html"
+  ]
+};
+
+async function exists(path){
+  try{
+    const res = await fetch(path, { cache: "no-store" });
+    return res.ok;
+  }catch(e){
+    return false;
+  }
+}
+
+async function goToPage(key){
+  const list = PAGE_CANDIDATES[key] || [];
+  for (const p of list){
+    if (await exists(p)){
+      location.href = p;
+      return;
+    }
+  }
+  alert(`找不到「${key}」頁面檔案。\n請確認 repo 是否存在：\n- ${list.join("\n- ")}`);
+}
+
+/* =========================
+   Landing -> Menu
+========================= */
+const landing = document.getElementById("landing");
+const menu = document.getElementById("menu");
+const enterBtn = document.getElementById("enterBtn");
+const menuSvg = document.getElementById("menuSvg");
+
+function showMenu(){
+  landing.style.display = "none";
+  menu.style.display = "flex";
+}
+
+enterBtn.addEventListener("click", showMenu);
+
+/* =========================
+   初始化：把 logo / menu svg 都補上（自動抓對路徑）
+========================= */
+let URLS = {}; // 存 resolved url
+
+(async function init(){
+  // landing logo
+  URLS.landing = await resolveAsset("landing");
+  if (!URLS.landing){
+    // 若真的找不到，至少讓你知道是哪裡缺
+    enterBtn.alt = "Missing: 資產 7.svg";
+  } else {
+    enterBtn.src = URLS.landing;
   }
 
-  enterBtn.addEventListener("click", showMenu);
+  // menu svgs
+  const keys = ["original","about","contact","poster","typographic","illustration","project"];
+  for (const k of keys){
+    URLS[k] = await resolveAsset(k);
+  }
 
-  /* ✅ 目錄 hover 切換 */
-  const hotspots = document.querySelectorAll(".hotspot");
+  // menu default
+  if (URLS.original){
+    menuSvg.src = URLS.original;
+  } else {
+    menuSvg.alt = "Missing: original.svg";
+  }
 
-  hotspots.forEach(h => {
-    const src = h.dataset.src;
-    const link = h.dataset.link;
-
-    h.addEventListener("mouseenter", () => {
-      menuSvg.src = src;
-    });
-
-    h.addEventListener("mouseleave", () => {
-      menuSvg.src = "SVG/original.svg";
-    });
-
-    h.addEventListener("click", () => {
-      window.location.href = link;
-    });
-  });
-
-  /* 預載，避免 hover 時閃一下 */
-  [
-    "SVG/original.svg",
-    "SVG/about.svg",
-    "SVG/contact.svg",
-    "SVG/poster.svg",
-    "SVG/typographic.svg",
-    "SVG/illustration.svg",
-    "SVG/project.svg",
-    "SVG/資產 7.svg"
-  ].forEach(p => {
+  // 預載已解析到的 svg，避免 hover 閃
+  Object.values(URLS).filter(Boolean).forEach(u => {
     const img = new Image();
-    img.src = p;
+    img.src = u;
+  });
+})();
+
+/* =========================
+   Menu hover 切換 + click 跳頁
+========================= */
+document.querySelectorAll(".hotspot").forEach(h => {
+  const key = h.dataset.key;
+
+  h.addEventListener("mouseenter", () => {
+    if (URLS[key]) menuSvg.src = URLS[key];
   });
 
-  /*
-    ✅ 如果你有時候會直接從某處進 #menu
-    (例如你自己測試或從別頁回來)，就自動顯示 menu
-  */
-  if (location.hash === "#menu") showMenu();
+  h.addEventListener("mouseleave", () => {
+    if (URLS.original) menuSvg.src = URLS.original;
+  });
+
+  h.addEventListener("click", () => {
+    goToPage(key);
+  });
+});
+
+/* 允許你用 #menu 直接進 menu（方便測試） */
+if (location.hash === "#menu") showMenu();
+
 </script>
 </body>
 </html>
