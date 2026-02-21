@@ -1,165 +1,210 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>liminalsynths</title>
 
 <style>
-html, body {
-  margin:0;
-  height:100%;
-  background:#fff;
-  font-family:"NeueMetanaNext-SemiBold";
-}
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #fff;
+    font-family: "NeueMetanaNext-SemiBold";
+  }
 
-/* ===== 共用置中容器 ===== */
-.center {
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+  /* 全站隱藏原生游標 */
+  body { cursor: none; }
 
-/* ===== Landing ===== */
-#landing img {
-  width:420px;
-  cursor:pointer;
-}
+  /* 黑色點點游標 */
+  .cursor {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #000;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 9999;
+  }
 
-/* ===== Menu SVG ===== */
-#menu {
-  display:none;
-}
+  /* 共用置中容器 */
+  .center {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.menu-wrap {
-  position:relative;
-  width:900px;
-  aspect-ratio:1 / 1.2;
-}
+  /* landing */
+  #landing img{
+    width: min(520px, 70vw);
+    height: auto;
+    cursor: none;
+  }
 
-#menuSvg {
-  width:100%;
-  display:block;
-  position:relative;
-  z-index:1;
-}
+  /* menu */
+  #menu { display: none; }
 
-/* ===== hover 區域 ===== */
-.menu-hotspots {
-  position:absolute;
-  inset:0;
-  z-index:10;
-}
+  /* 讓 menu 真正置中、且響應式縮放 */
+  .menu-wrap{
+    position: relative;
+    width: min(980px, 88vw);
+    /* 這個 max-height 可以避免超高螢幕時看起來飄上去 */
+    max-height: 82vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.menu-hotspot {
-  position:absolute;
-  width:100%;
-  height:14.2%;
-  cursor:pointer;
-}
+  #menuSvg{
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
 
-/* 六個區塊垂直切 */
-.menu-hotspot:nth-child(1){ top:0%;}
-.menu-hotspot:nth-child(2){ top:14.2%;}
-.menu-hotspot:nth-child(3){ top:28.4%;}
-.menu-hotspot:nth-child(4){ top:42.6%;}
-.menu-hotspot:nth-child(5){ top:56.8%;}
-.menu-hotspot:nth-child(6){ top:71%;}
+  /* 熱區覆蓋層 */
+  .menu-hotspots{
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: auto;
+  }
 
-/* ===== 自訂滑鼠 ===== */
-body { cursor:none; }
+  .hotspot{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 88%;
+    /* 可視化 debug：想看熱區就把下面註解拿掉 */
+    /* background: rgba(0, 120, 255, 0.12); */
+  }
 
-.cursor {
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:#000;
-  position:fixed;
-  pointer-events:none;
-  z-index:999;
-}
+  /*
+    ✅ 這組百分比是為了貼合你那張「六行堆疊字」的版面
+    如果你覺得某行 hover 還是不夠準，只要微調 top/height 就好
+  */
+  .hs-about       { top:  6.5%; height: 14.5%; }
+  .hs-contact     { top: 19.5%; height: 14.5%; }
+  .hs-poster      { top: 32.5%; height: 14.5%; }
+  .hs-typographic { top: 45.5%; height: 14.5%; }
+  .hs-illustration{ top: 58.5%; height: 14.5%; }
+  .hs-project     { top: 71.5%; height: 16.0%; } /* 最下面通常略高一點比較好吃 */
+
+  /* 手感：熱區本身不顯示游標，但仍可點 */
+  .hotspot { cursor: none; }
+
+  /* 防止圖片載入前跳動 */
+  img { image-rendering: auto; }
 </style>
 </head>
 
 <body>
-
 <div class="cursor" id="cursor"></div>
 
-<!-- ===== Landing ===== -->
+<!-- Landing -->
 <section id="landing" class="center">
-  <img src="SVG/資產 7.svg" id="enterBtn">
+  <img id="enterBtn" src="SVG/資產 7.svg" alt="liminalsynths"/>
 </section>
 
-<!-- ===== Menu ===== -->
+<!-- Menu -->
 <section id="menu" class="center">
+  <div class="menu-wrap" id="menuWrap">
+    <img id="menuSvg" src="SVG/original.svg" alt="menu"/>
 
-  <div class="menu-wrap">
-    <img id="menuSvg" src="SVG/original.svg">
+    <div class="menu-hotspots" aria-hidden="true">
+      <div class="hotspot hs-about"
+           data-src="SVG/about.svg"
+           data-link="about.html"></div>
 
-    <div class="menu-hotspots">
-      <div class="menu-hotspot" data-src="SVG/about.svg" data-link="about.html"></div>
-      <div class="menu-hotspot" data-src="SVG/contact.svg" data-link="contact.html"></div>
-      <div class="menu-hotspot" data-src="SVG/poster.svg" data-link="poster.html"></div>
-      <div class="menu-hotspot" data-src="SVG/typographic.svg" data-link="typographic.html"></div>
-      <div class="menu-hotspot" data-src="SVG/illustration.svg" data-link="illustration.html"></div>
-      <div class="menu-hotspot" data-src="SVG/project.svg" data-link="project.html"></div>
+      <div class="hotspot hs-contact"
+           data-src="SVG/contact.svg"
+           data-link="contact.html"></div>
+
+      <div class="hotspot hs-poster"
+           data-src="SVG/poster.svg"
+           data-link="poster.html"></div>
+
+      <div class="hotspot hs-typographic"
+           data-src="SVG/typographic.svg"
+           data-link="typographic.html"></div>
+
+      <div class="hotspot hs-illustration"
+           data-src="SVG/illustration.svg"
+           data-link="illustration.html"></div>
+
+      <div class="hotspot hs-project"
+           data-src="SVG/project.svg"
+           data-link="project.html"></div>
     </div>
   </div>
-
 </section>
 
 <script>
-
-/* ===== 滑鼠點點 ===== */
-const cursor = document.getElementById("cursor");
-document.addEventListener("mousemove", e=>{
-  cursor.style.left = e.clientX + "px";
-  cursor.style.top = e.clientY + "px";
-});
-
-/* ===== Landing → Menu ===== */
-const landing = document.getElementById("landing");
-const menu = document.getElementById("menu");
-
-document.getElementById("enterBtn").onclick = ()=>{
-  landing.style.display="none";
-  menu.style.display="flex";
-};
-
-/* ===== Menu hover 切換 ===== */
-const svg = document.getElementById("menuSvg");
-
-document.querySelectorAll(".menu-hotspot").forEach(h=>{
-  const src = h.dataset.src;
-  const link = h.dataset.link;
-
-  /* hover 反藍 */
-  h.addEventListener("mouseenter", ()=>{
-    svg.src = src;
+  /* 黑色點點游標 */
+  const cursor = document.getElementById("cursor");
+  window.addEventListener("mousemove", (e) => {
+    cursor.style.left = e.clientX + "px";
+    cursor.style.top  = e.clientY + "px";
   });
 
-  /* 離開恢復 */
-  h.addEventListener("mouseleave", ()=>{
-    svg.src = "SVG/original.svg";
+  const landing = document.getElementById("landing");
+  const menu = document.getElementById("menu");
+  const enterBtn = document.getElementById("enterBtn");
+  const menuSvg = document.getElementById("menuSvg");
+
+  function showMenu(){
+    landing.style.display = "none";
+    menu.style.display = "flex";
+  }
+
+  enterBtn.addEventListener("click", showMenu);
+
+  /* ✅ 目錄 hover 切換 */
+  const hotspots = document.querySelectorAll(".hotspot");
+
+  hotspots.forEach(h => {
+    const src = h.dataset.src;
+    const link = h.dataset.link;
+
+    h.addEventListener("mouseenter", () => {
+      menuSvg.src = src;
+    });
+
+    h.addEventListener("mouseleave", () => {
+      menuSvg.src = "SVG/original.svg";
+    });
+
+    h.addEventListener("click", () => {
+      window.location.href = link;
+    });
   });
 
-  /* 點擊進頁 */
-  h.addEventListener("click", ()=>{
-    location.href = link;
+  /* 預載，避免 hover 時閃一下 */
+  [
+    "SVG/original.svg",
+    "SVG/about.svg",
+    "SVG/contact.svg",
+    "SVG/poster.svg",
+    "SVG/typographic.svg",
+    "SVG/illustration.svg",
+    "SVG/project.svg",
+    "SVG/資產 7.svg"
+  ].forEach(p => {
+    const img = new Image();
+    img.src = p;
   });
-});
 
-/* ===== 預載 SVG 避免閃爍 ===== */
-[
- "about","contact","poster",
- "typographic","illustration","project"
-].forEach(name=>{
-  const img = new Image();
-  img.src = `SVG/${name}.svg`;
-});
-
+  /*
+    ✅ 如果你有時候會直接從某處進 #menu
+    (例如你自己測試或從別頁回來)，就自動顯示 menu
+  */
+  if (location.hash === "#menu") showMenu();
 </script>
-
 </body>
 </html>
