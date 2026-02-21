@@ -14,10 +14,34 @@
         }
         
         body {
+            margin: 0;
             font-family: 'NeueMetanaNext', sans-serif;
             background-color: white;
             overflow: hidden; /* 防止捲動，確保像簡報 */
         }
+        html, body { width: 100%; height: 100%; }
+
+        /* Minimal utility classes (Tailwind-like) */
+        .w-full{ width:100%; }
+        .h-full{ height:100%; }
+        .flex{ display:flex; }
+        .items-center{ align-items:center; }
+        .justify-center{ justify-content:center; }
+        .text-center{ text-align:center; }
+        .text-left{ text-align:left; }
+        .text-xl{ font-size: 1.25rem; line-height: 1.5; }
+        .leading-relaxed{ line-height: 1.7; }
+        .bg-gray-200{ background:#d9d9d9; }
+        .p-10{ padding: 40px; }
+        .max-w-6xl{ max-width: 72rem; }
+        .mx-auto{ margin-left:auto; margin-right:auto; }
+        .w-44{ width: 11rem; }
+        .w-56{ width: 14rem; }
+        .w-60{ width: 15rem; }
+        .w-64{ width: 16rem; }
+        .w-72{ width: 18rem; }
+        .max-h-\[78vh\]{ max-height: 78vh; }
+
 
         /* 黑色點點滑鼠游標 */
         :root{
@@ -97,7 +121,43 @@
         /* 更像檔案二：大量留白、文字不要太粗 */
         .meta-text { font-size: 12px; line-height: 1.35; color: #111; }
         .small-title { font-size: 22px; font-weight: 600; }
-    </style>
+    
+        .center-screen{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+        .menu-swap{ position:relative; width:min(720px, 92vw); }
+        .menu-swap img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
+        .menu-hotspots{
+            position:absolute; inset:0;
+            display:grid;
+            grid-template-rows: repeat(6, 1fr);
+            background: transparent;
+        }
+        .menu-hotspot{
+            appearance:none;
+            border:none;
+            background: transparent;
+            cursor: none; /* use custom cursor */
+            padding:0;
+            margin:0;
+        }
+        /* Ensure no drop shadow on detail images */
+        .detail-image{ box-shadow:none !important; filter:none !important; }
+
+
+        /* Custom cursor: black dot */
+        #customCursor{
+            position: fixed;
+            top: 0; left: 0;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #000;
+            pointer-events: none;
+            transform: translate(-100px, -100px);
+            z-index: 9999;
+        }
+        #customCursor.down{ width: 8px; height: 8px; }
+        body, button, a { cursor: none; }
+
+</style>
 </head>
 <body>
 
@@ -108,17 +168,23 @@
         </div>
     </div>
 
-    <div id="menu" class="page">
-        <div class="menu-stack">
-            <div class="menu-stack-inner">
-                <div class="menu-link clickable" onclick="goTo('about')"><img src="SVG/about.svg" alt="about"></div>
-                <div class="menu-link clickable" onclick="goTo('contact')"><img src="SVG/contact.svg" alt="contact"></div>
-                <div class="menu-link clickable" onclick="goTo('poster')"><img src="SVG/poster.svg" alt="poster"></div>
-                <div class="menu-link clickable" onclick="goTo('typographic')"><img src="SVG/typographic.svg" alt="typographic"></div>
-                <div class="menu-link clickable" onclick="goTo('illustration')"><img src="SVG/illustration.svg" alt="illustration"></div>
-                <div class="menu-link clickable" onclick="goTo('project')"><img src="SVG/project.svg" alt="project"></div>
+    
+<div id="menu" class="page">
+    <div class="center-screen">
+        <div class="menu-swap">
+            <img id="menuSvg" src="SVG/original.svg" alt="menu" draggable="false"/>
+            <div class="menu-hotspots" aria-label="menu hotspots">
+                <button class="menu-hotspot" data-src="SVG/about.svg" data-target="about" aria-label="about"></button>
+                <button class="menu-hotspot" data-src="SVG/contact.svg" data-target="contact" aria-label="contact"></button>
+                <button class="menu-hotspot" data-src="SVG/poster.svg" data-target="poster" aria-label="poster"></button>
+                <button class="menu-hotspot" data-src="SVG/typographic.svg" data-target="typographic" aria-label="typographic"></button>
+                <button class="menu-hotspot" data-src="SVG/illustration.svg" data-target="illustration" aria-label="illustration"></button>
+                <button class="menu-hotspot" data-src="SVG/project.svg" data-target="project" aria-label="project"></button>
             </div>
         </div>
+    </div>
+</div>
+</div>
     </div>
 
     <div id="about" class="page">
@@ -173,7 +239,7 @@
             </div>
 
             <div class="absolute right-24 top-24 bottom-24 flex items-center justify-center" style="left: 360px;">
-                <img src="image/foray 2021.jpg" class="max-h-[78vh]" alt="foray poster">
+                <img src="image/foray 2021.jpg" class="max-h-[78vh] detail-image" alt="foray poster">
             </div>
         </div>
     </div>
@@ -211,152 +277,258 @@
 
     
 <script>
-    function goTo(pageId){
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        // 每次進入 poster，重新綁定（避免首次進入前找不到元素）
-        if(pageId==='poster') initPosterWobble();
+
+    const pages = document.querySelectorAll('.page');
+
+    function goTo(pageId) {
+        pages.forEach(page => page.classList.remove('active'));
+        const target = document.getElementById(pageId);
+        if (target) target.classList.add('active');
+
+        // Init per-page interactions
+        if (pageId === 'menu') initMenuSwap();
+        if (pageId === 'poster') initPosterInteraction();
     }
 
-    // Poster：滑鼠經過單張圖時，周邊圖會被「漣漪／蝴蝶效應」輕微牽引（不是整體一起動）
-    // 並且限制位移，避免過度重疊（交集 > 2/3）
-    function initPosterInteraction(){
-        const posterPage=document.getElementById('poster');
-        if(!posterPage) return;
-        const imgs=[...posterPage.querySelectorAll('.floating-img')];
-        if(!imgs.length) return;
-        if(posterPage.dataset.physicsBound==='1') return;
-        posterPage.dataset.physicsBound='1';
+    // -------- Menu hover swap (single SVG + hotspots) --------
+    let menuInited = false;
+    function initMenuSwap() {
+        if (menuInited) return;
+        menuInited = true;
 
-        const state=imgs.map(()=>({ x:0, y:0, vx:0, vy:0, tx:0, ty:0 }));
-        let pointer={ x:0, y:0, active:false };
-        let hoveredIndex=-1;
+        const menuSvg = document.getElementById('menuSvg');
+        const hotspots = document.querySelectorAll('.menu-hotspot');
+        if (!menuSvg || !hotspots.length) return;
 
-        const clamp=(v,min,max)=>Math.max(min, Math.min(max, v));
-        const lerp=(a,b,t)=>a+(b-a)*t;
+        const originalSrc = 'SVG/original.svg';
 
-        // 監聽滑鼠
-        posterPage.addEventListener('pointermove',(e)=>{
-            pointer.x=e.clientX; pointer.y=e.clientY; pointer.active=true;
-        });
-        posterPage.addEventListener('pointerleave',()=>{
-            pointer.active=false; hoveredIndex=-1;
-        });
-        imgs.forEach((img,i)=>{
-            img.addEventListener('pointerenter',()=>{ hoveredIndex=i; });
-            img.addEventListener('pointerleave',()=>{ if(hoveredIndex===i) hoveredIndex=-1; });
-        });
+        hotspots.forEach(btn => {
+            const hoverSrc = btn.getAttribute('data-src');
+            const target = btn.getAttribute('data-target');
 
-        function computeTargets(){
-            // reset
-            for(let i=0;i<imgs.length;i++){ state[i].tx=0; state[i].ty=0; }
-            if(!pointer.active) return;
-
-            const maxA=12; // 最大位移（px）
-
-            // pointer influence (local)
-            for(let i=0;i<imgs.length;i++){
-                const r=imgs[i].getBoundingClientRect();
-                const cx=r.left+r.width/2;
-                const cy=r.top+r.height/2;
-                const dx=pointer.x-cx;
-                const dy=pointer.y-cy;
-                const dist=Math.sqrt(dx*dx+dy*dy)+0.0001;
-                const fall=Math.exp(-dist/380);
-                const amp=(i===hoveredIndex? 10: 5) * fall;
-                state[i].tx += clamp(dx/dist, -1, 1) * amp;
-                state[i].ty += clamp(dy/dist, -1, 1) * amp;
-            }
-
-            // coupling: 以 hover 的那張為中心，周邊被輕微「拉近」並帶一點漣漪偏移
-            if(hoveredIndex>=0){
-                const hr=imgs[hoveredIndex].getBoundingClientRect();
-                const hx=hr.left+hr.width/2;
-                const hy=hr.top+hr.height/2;
-                for(let i=0;i<imgs.length;i++){
-                    if(i===hoveredIndex) continue;
-                    const r=imgs[i].getBoundingClientRect();
-                    const cx=r.left+r.width/2;
-                    const cy=r.top+r.height/2;
-                    const dx=cx-hx;
-                    const dy=cy-hy;
-                    const dist=Math.sqrt(dx*dx+dy*dy)+0.0001;
-                    const fall=Math.exp(-dist/520);
-                    // toward hovered
-                    state[i].tx += (-dx/dist) * (6*fall);
-                    state[i].ty += (-dy/dist) * (6*fall);
-                    // tiny perpendicular ripple
-                    state[i].tx += (-dy/dist) * (2.2*fall);
-                    state[i].ty += ( dx/dist) * (2.2*fall);
-                }
-            }
-
-            // limit
-            for(let i=0;i<imgs.length;i++){
-                state[i].tx=clamp(state[i].tx, -maxA, maxA);
-                state[i].ty=clamp(state[i].ty, -maxA, maxA);
-            }
-
-            // overlap avoidance (very light): if overlap area ratio > 0.66, push apart
-            const predicted=imgs.map((img,i)=>{
-                const r=img.getBoundingClientRect();
-                return {
-                    l:r.left+state[i].tx,
-                    t:r.top+state[i].ty,
-                    r:r.right+state[i].tx,
-                    b:r.bottom+state[i].ty,
-                    cx:(r.left+r.right)/2+state[i].tx,
-                    cy:(r.top+r.bottom)/2+state[i].ty,
-                    a:r.width*r.height
-                };
+            btn.addEventListener('mouseenter', () => {
+                if (hoverSrc) menuSvg.src = hoverSrc;
             });
-            for(let i=0;i<predicted.length;i++){
-                for(let j=i+1;j<predicted.length;j++){
-                    const A=predicted[i], B=predicted[j];
-                    const iw=Math.max(0, Math.min(A.r,B.r)-Math.max(A.l,B.l));
-                    const ih=Math.max(0, Math.min(A.b,B.b)-Math.max(A.t,B.t));
-                    const inter=iw*ih;
-                    const minA=Math.min(A.a,B.a);
-                    if(minA<=0) continue;
-                    const ratio=inter/minA;
-                    if(ratio>0.66){
-                        const dx=A.cx-B.cx;
-                        const dy=A.cy-B.cy;
-                        const d=Math.sqrt(dx*dx+dy*dy)+0.0001;
-                        const push=(ratio-0.66)*18; // small
-                        state[i].tx += (dx/d)*push;
-                        state[i].ty += (dy/d)*push;
-                        state[j].tx -= (dx/d)*push;
-                        state[j].ty -= (dy/d)*push;
+            btn.addEventListener('mouseleave', () => {
+                menuSvg.src = originalSrc;
+            });
+            btn.addEventListener('click', () => {
+                if (target) goTo(target);
+            });
+        });
+
+        // safety reset
+        menuSvg.src = originalSrc;
+    }
+
+    // -------- Custom cursor (black dot) --------
+    const cursor = document.createElement('div');
+    cursor.id = 'customCursor';
+    document.body.appendChild(cursor);
+
+    document.addEventListener('mousemove', (e) => {
+        cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    });
+
+    document.addEventListener('mousedown', () => cursor.classList.add('down'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('down'));
+
+    // -------- Poster interactions: drift + ripple + collision bounce --------
+    let posterInited = false;
+
+    function initPosterInteraction() {
+        if (posterInited) return;
+        posterInited = true;
+
+        const posterContainer = document.querySelector('#poster .poster-container');
+        if (!posterContainer) return;
+
+        const items = Array.from(posterContainer.querySelectorAll('.poster-item'));
+        if (!items.length) return;
+
+        // Disable any accidental shadow
+        items.forEach(el => el.style.boxShadow = 'none');
+
+        // State per image
+        const states = items.map(el => {
+            const left = parseFloat(getComputedStyle(el).left) || 0;
+            const top  = parseFloat(getComputedStyle(el).top) || 0;
+            const w = el.offsetWidth;
+            const h = el.offsetHeight;
+            return {
+                el,
+                baseX: left,
+                baseY: top,
+                x: 0, y: 0,
+                vx: 0, vy: 0,
+                w, h,
+                hover: 0,
+            };
+        });
+
+        // Recalculate sizes on resize (responsive)
+        const syncSizes = () => {
+            states.forEach(s => {
+                s.w = s.el.offsetWidth;
+                s.h = s.el.offsetHeight;
+            });
+        };
+        window.addEventListener('resize', syncSizes);
+
+        // Hover "butterfly effect": lightly tug neighbors
+        states.forEach((s, idx) => {
+            s.el.addEventListener('mouseenter', () => { s.hover = 1; });
+            s.el.addEventListener('mouseleave', () => { s.hover = 0; });
+        });
+
+        // Drag influence
+        let isDown = false;
+        let lastX = 0, lastY = 0;
+
+        posterContainer.addEventListener('pointerdown', (e) => {
+            isDown = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            posterContainer.setPointerCapture(e.pointerId);
+        });
+
+        posterContainer.addEventListener('pointerup', (e) => {
+            isDown = false;
+            try { posterContainer.releasePointerCapture(e.pointerId); } catch {}
+        });
+
+        posterContainer.addEventListener('pointercancel', () => { isDown = false; });
+
+        posterContainer.addEventListener('pointermove', (e) => {
+            if (!isDown) return;
+
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+
+            const rect = posterContainer.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            // apply impulse to nearby images
+            const radius = 220; // px
+            states.forEach(s => {
+                const cx = (s.baseX + s.x) + s.w / 2;
+                const cy = (s.baseY + s.y) + s.h / 2;
+                const dist = Math.hypot(cx - mx, cy - my);
+                if (dist < radius) {
+                    const fall = (1 - dist / radius);
+                    s.vx += dx * 0.25 * fall;
+                    s.vy += dy * 0.25 * fall;
+                }
+            });
+        });
+
+        // Physics loop
+        function step() {
+            // Springs back to base + damping
+            const spring = 0.02;
+            const damp = 0.90;
+
+            // Hover ripple nudges
+            const hoverKick = 0.8;
+
+            // Collision response settings
+            const overlapLimit = 0.66; // don't exceed 2/3 overlap
+            const bounce = 0.45;       // rebound strength
+            const repel = 0.015;       // soft separation
+
+            // Apply hover influence
+            states.forEach((s,i) => {
+                if (s.hover > 0) {
+                    states.forEach((t,j) => {
+                        if (i === j) return;
+                        const dx = (t.baseX + t.x + t.w/2) - (s.baseX + s.x + s.w/2);
+                        const dy = (t.baseY + t.y + t.h/2) - (s.baseY + s.y + s.h/2);
+                        const d = Math.hypot(dx, dy) || 1;
+                        const r = 260;
+                        if (d < r) {
+                            const f = (1 - d/r) * hoverKick;
+                            t.vx += (dx/d) * f * 0.12;
+                            t.vy += (dy/d) * f * 0.12;
+                        }
+                    });
+                }
+            });
+
+            // Pairwise collisions based on overlap ratio
+            for (let i = 0; i < states.length; i++) {
+                for (let j = i + 1; j < states.length; j++) {
+                    const a = states[i], b = states[j];
+
+                    const ax1 = a.baseX + a.x, ay1 = a.baseY + a.y;
+                    const ax2 = ax1 + a.w,    ay2 = ay1 + a.h;
+                    const bx1 = b.baseX + b.x, by1 = b.baseY + b.y;
+                    const bx2 = bx1 + b.w,     by2 = by1 + b.h;
+
+                    const ix = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
+                    const iy = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
+                    if (ix <= 0 || iy <= 0) continue;
+
+                    const interArea = ix * iy;
+                    const minArea = Math.min(a.w * a.h, b.w * b.h);
+                    const ratio = interArea / (minArea || 1);
+
+                    if (ratio > overlapLimit) {
+                        // push away along center-to-center
+                        const acx = ax1 + a.w/2, acy = ay1 + a.h/2;
+                        const bcx = bx1 + b.w/2, bcy = by1 + b.h/2;
+                        let dx = bcx - acx;
+                        let dy = bcy - acy;
+                        const d = Math.hypot(dx, dy) || 1;
+                        dx /= d; dy /= d;
+
+                        const strength = (ratio - overlapLimit) * 120;
+                        a.vx -= dx * strength * repel;
+                        a.vy -= dy * strength * repel;
+                        b.vx += dx * strength * repel;
+                        b.vy += dy * strength * repel;
+
+                        // rebound
+                        a.vx *= (1 - bounce);
+                        a.vy *= (1 - bounce);
+                        b.vx *= (1 - bounce);
+                        b.vy *= (1 - bounce);
                     }
                 }
             }
 
-            for(let i=0;i<imgs.length;i++){
-                state[i].tx=clamp(state[i].tx, -maxA, maxA);
-                state[i].ty=clamp(state[i].ty, -maxA, maxA);
-            }
-        }
+            // Integrate
+            states.forEach(s => {
+                // spring back to origin
+                s.vx += (-s.x) * spring;
+                s.vy += (-s.y) * spring;
 
-        function tick(){
-            computeTargets();
-            for(let i=0;i<imgs.length;i++){
-                const s=state[i];
-                // spring
-                s.vx = s.vx*0.84 + (s.tx - s.x)*0.14;
-                s.vy = s.vy*0.84 + (s.ty - s.y)*0.14;
+                s.vx *= damp;
+                s.vy *= damp;
+
                 s.x += s.vx;
                 s.y += s.vy;
-                const rot=clamp(s.x, -12, 12) * 0.18;
-                const scale=(i===hoveredIndex? 1.02: 1);
-                imgs[i].style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px) rotate(${rot.toFixed(2)}deg) scale(${scale})`;
-            }
-            requestAnimationFrame(tick);
+
+                // Clamp drift so it stays subtle
+                const maxDrift = 42;
+                s.x = Math.max(-maxDrift, Math.min(maxDrift, s.x));
+                s.y = Math.max(-maxDrift, Math.min(maxDrift, s.y));
+
+                s.el.style.transform = `translate(${s.x}px, ${s.y}px)`;
+            });
+
+            requestAnimationFrame(step);
         }
-        requestAnimationFrame(tick);
+
+        requestAnimationFrame(step);
     }
 
-    window.addEventListener('load', ()=>{ initPosterInteraction(); });
+    window.onload = () => {
+        initMenuSwap();
+    };
+
 </script>
 
 </body>
