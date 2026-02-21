@@ -114,8 +114,8 @@ body, .page, .clickable, button, a, img { cursor: none; }
         }
 
         /* 更像檔案二：大量留白、文字不要太粗 */
-        .meta-text { font-size: 13px; line-height: 1.35; color: #111; }
-        .small-title { font-size: 21px; font-weight: 600; }
+        .meta-text { font-size: 12px; line-height: 1.35; color: #111; }
+        .small-title { font-size: 22px; font-weight: 600; }
     
         .center-screen{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
         .menu-swap{ position:relative; width:min(720px, 92vw); }
@@ -200,17 +200,9 @@ html.is-touch #customCursor{ display:none !important; }
 
 /* Desktop-only: About page text + grey box scale down by 0.5 (per request) */
 @media (min-width: 769px){
-
   #about .about-box{
-    width: 50%;
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 40px;
-  }
-
-  #about .about-box p{
-    font-size: 0.73rem;
-    line-height: 1.6;
+    transform: scale(0.5);
+    transform-origin: center;
   }
 }
 </style>
@@ -259,8 +251,8 @@ html.is-touch #customCursor{ display:none !important; }
         <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center text-center">
             <div>
-                <div class="meta-text" style="font-size:20px;">liminalsynths@gmail.com</div>
-                <div class="meta-text" style="font-size:20px; margin-top:10px;">@liminalsynths</div>
+                <div class="meta-text" style="font-size:16px;">liminalsynths@gmail.com</div>
+                <div class="meta-text" style="font-size:16px; margin-top:10px;">@liminalsynths</div>
             </div>
         </div>
     </div>
@@ -269,13 +261,25 @@ html.is-touch #customCursor{ display:none !important; }
         <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
         <!-- 對齊檔案二：頁1（大片留白＋散落拼貼） -->
-        <img src="image/iridescent 2017.jpg" class="floating-img w-44" style="top:18%; left:8%;" onclick="goTo('detail')">
-        <img src="image/multiboost.jpg" class="floating-img w-72" style="top:24%; left:18%;" onclick="goTo('detail')">
-        <img src="image/mirror 2021.jpg" class="floating-img w-60" style="top:8%; left:40%;" onclick="goTo('detail')">
-        <img src="image/foray 2021.jpg" class="floating-img w-72" style="top:14%; left:58%;" onclick="goTo('detail')">
-        <img src="image/born this way ism.jpg" class="floating-img w-64" style="top:22%; left:78%;" onclick="goTo('detail')">
-        <img src="image/coverthed.jpg" class="floating-img w-56" style="bottom:18%; left:14%;" onclick="goTo('detail')">
-        <img src="image/strike 2021.jpg" class="floating-img w-64" style="bottom:16%; left:58%;" onclick="goTo('detail')">
+        <!--
+          Poster works are mapped by the numbering in your PDF (2~14).
+          Each tile opens the shared detail page with its own metadata.
+        -->
+        <img src="image/2.png" class="floating-img w-56" style="top:8%; left:8%;"  onclick="openPoster('mutant')"   alt="mutant">
+        <img src="image/3.jpg" class="floating-img w-56" style="top:22%; left:16%;" onclick="openPoster('melite')"   alt="melite">
+        <img src="image/4.png" class="floating-img w-44" style="top:12%; left:34%;" onclick="openPoster('pearl')"   data-placeholder="pearl"   alt="pearl">
+        <img src="image/5.jpg" class="floating-img w-44" style="top:26%; left:38%;" onclick="openPoster('passion')" data-placeholder="passion" alt="passion">
+        <img src="image/6.png" class="floating-img w-60" style="top:8%; left:50%;"  onclick="openPoster('meteorite')" alt="meteorite">
+
+        <img src="image/7.jpg" class="floating-img w-72" style="top:14%; left:64%;" onclick="openPoster('multiboost')" alt="multiboost">
+        <img src="image/8.jpg" class="floating-img w-56" style="top:30%; left:74%;" onclick="openPoster('iridescent')" alt="iridescent">
+        <img src="image/9.jpg" class="floating-img w-64" style="top:46%; left:78%;" onclick="openPoster('born_this_way')" alt="born this way">
+
+        <img src="image/10.jpg" class="floating-img w-64" style="bottom:18%; left:56%;" onclick="openPoster('strike')" alt="strike">
+        <img src="image/11.jpg" class="floating-img w-56" style="bottom:14%; left:36%;" onclick="openPoster('mirror')" alt="mirror">
+        <img src="image/12.jpg" class="floating-img w-60" style="bottom:10%; left:18%;" onclick="openPoster('foray')" alt="foray">
+        <img src="image/13.png" class="floating-img w-44" style="bottom:30%; left:12%;" onclick="openPoster('the_crown')" data-placeholder="the_crown" alt="the crown">
+        <img src="image/14.jpg" class="floating-img w-56" style="bottom:30%; left:70%;" onclick="openPoster('yungboi_harris')" alt="yungboi harris">
     </div>
 
     <div id="detail" class="page">
@@ -284,18 +288,16 @@ html.is-touch #customCursor{ display:none !important; }
         <!-- 對齊檔案二：頁2（左側資訊＋右側大圖） -->
         <div class="w-full h-full relative">
             <div class="absolute left-24 top-24">
-                <div class="small-title">foray</div>
+                <div class="small-title" id="detailTitle">—</div>
             </div>
 
             <div class="absolute left-24 bottom-24 w-72 space-y-3">
-                <div class="meta-text">2021<br>visual poster</div>
-                <div class="meta-text">
-                    a massive celestial body lands on barren ground. its origin and purpose unknown. created with illustration and post-production tools.
-                </div>
+                <div class="meta-text" id="detailMeta">—</div>
+                <div class="meta-text" id="detailDesc">—</div>
             </div>
 
             <div class="absolute right-24 top-24 bottom-24 flex items-center justify-center" style="left: 360px;">
-                <img src="image/foray 2021.jpg" class="max-h-[78vh] detail-image" alt="foray poster">
+                <img id="detailImage" src="" class="max-h-[78vh] detail-image" alt="detail image">
             </div>
         </div>
     </div>
@@ -346,9 +348,182 @@ html.is-touch #customCursor{ display:none !important; }
 
     // Init per-page interactions (lazy)
     if (pageId === 'menu') initMenuSwap();
-    if (pageId === 'poster') initPosterInteraction();
+    if (pageId === 'poster') {
+      ensurePosterPlaceholders();
+      initPosterInteraction();
+    }
   }
   window.goTo = goTo;
+
+  // ---------------------------
+  // Poster metadata (from your PDF sheet: 2~14)
+  // Each work opens the shared #detail page.
+  // If an image is missing in /image, we render a minimal placeholder.
+  // ---------------------------
+  const POSTER_WORKS = {
+    mutant: {
+      no: 2,
+      title: 'mutant',
+      year: '2023',
+      type: 'digital visual art',
+      desc: 'an abstract beast modeled to symbolize mutation.',
+      image: 'image/2.png'
+    },
+    melite: {
+      no: 3,
+      title: 'melite',
+      year: '2023',
+      type: 'digital visual art',
+      desc: 'a digitally modeled expression of joy and diversity.',
+      image: 'image/3.jpg'
+    },
+    pearl: {
+      no: 4,
+      title: 'pearl',
+      year: '2023',
+      type: 'digital visual art',
+      desc: 'an experimental take on the proverb "untainted by the mud," created with digital modeling and post-production.',
+      image: 'image/4.png'
+    },
+    passion: {
+      no: 5,
+      title: 'passion',
+      year: '2022',
+      type: 'digital wallpaper',
+      desc: 'a minimalist, modern desktop wallpaper created through digital modeling.',
+      image: 'image/5.jpg'
+    },
+    meteorite: {
+      no: 6,
+      title: 'Meteorite',
+      year: '2020',
+      type: 'digital wallpaper',
+      desc: 'a minimalist, modern desktop wallpaper created through digital modeling.',
+      image: 'image/6.png'
+    },
+    multiboost: {
+      no: 7,
+      title: 'multiboost',
+      year: '2019',
+      type: 'visual poster',
+      desc: 'a visualization of vibrant color impact and pulsing rhythm, created through digital modeling and post-production.',
+      image: 'image/7.jpg'
+    },
+    iridescent: {
+      no: 8,
+      title: 'iridescent',
+      year: '2017',
+      type: 'visual poster',
+      desc: 'a luminous, iridescent form rendered through digital modeling and post-production.',
+      image: 'image/8.jpg'
+    },
+    born_this_way: {
+      no: 9,
+      title: 'born this way',
+      year: '2017',
+      type: 'digital visual art',
+      desc: '“after cosmic collision comes life” — a structural burst of color created through digital modeling and post-production.',
+      image: 'image/9.jpg'
+    },
+    strike: {
+      no: 10,
+      title: 'strike',
+      year: '2021',
+      type: 'visual poster',
+      desc: 'playful, colorful discs collide in a digital space, presented through modeling and post-production.',
+      image: 'image/10.jpg'
+    },
+    mirror: {
+      no: 11,
+      title: 'mirror',
+      year: '2021',
+      type: 'visual poster',
+      desc: 'a surreal mirror opens a portal in a gradient world, created through digital modeling and post-production.',
+      image: 'image/11.jpg'
+    },
+    foray: {
+      no: 12,
+      title: 'foray',
+      year: '2021',
+      type: 'visual poster',
+      desc: 'a massive celestial body lands on barren ground. its origin and purpose unknown. created with illustration and post-production tools.',
+      image: 'image/12.jpg'
+    },
+    the_crown: {
+      no: 13,
+      title: 'the crown',
+      year: '2021',
+      type: 'visual poster',
+      desc: 'a crown of dominance above alien colonies, created through illustration, modeling, and post-production.',
+      image: 'image/13.png'
+    },
+    yungboi_harris: {
+      no: 14,
+      title: 'yungboi harris',
+      year: '2018',
+      type: 'album cover',
+      desc: 'an album cover designed for rapper t.i.g.’s release “yungboi harris.”',
+      image: 'image/14.jpg'
+    }
+  };
+
+  function buildPlaceholderDataURI(work) {
+    const no = String(work.no || '').padStart(2, '0');
+    const title = (work.title || 'untitled').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <rect width="900" height="1200" fill="#e9e9e9"/>
+  <rect x="40" y="40" width="820" height="1120" fill="none" stroke="#111" stroke-opacity="0.18" stroke-width="2"/>
+  <text x="70" y="150" font-family="NeueMetanaNext, Arial" font-size="64" fill="#111" fill-opacity="0.75">${no}</text>
+  <text x="70" y="240" font-family="NeueMetanaNext, Arial" font-size="44" fill="#111" fill-opacity="0.75">${title}</text>
+  <text x="70" y="310" font-family="NeueMetanaNext, Arial" font-size="26" fill="#111" fill-opacity="0.55">image pending</text>
+</svg>`;
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  function ensurePosterPlaceholders() {
+    // Any <img class="floating-img"> with data-placeholder gets a generated SVG poster.
+    const imgs = document.querySelectorAll('#poster img.floating-img[data-placeholder]');
+    imgs.forEach(img => {
+      const key = img.getAttribute('data-placeholder');
+      const work = POSTER_WORKS[key];
+      if (!work) return;
+      if (img.getAttribute('src')) return;
+      img.src = buildPlaceholderDataURI(work);
+    });
+  }
+
+  function renderPosterDetail(key) {
+    const work = POSTER_WORKS[key];
+    const titleEl = document.getElementById('detailTitle');
+    const metaEl = document.getElementById('detailMeta');
+    const descEl = document.getElementById('detailDesc');
+    const imgEl = document.getElementById('detailImage');
+
+    if (!titleEl || !metaEl || !descEl || !imgEl) return;
+
+    if (!work) {
+      titleEl.textContent = '—';
+      metaEl.innerHTML = '—';
+      descEl.textContent = '';
+      imgEl.src = buildPlaceholderDataURI({ no: '--', title: 'not found' });
+      return;
+    }
+
+    titleEl.textContent = work.title;
+    metaEl.innerHTML = `${work.year}<br>${work.type}`;
+    descEl.textContent = work.desc;
+
+    imgEl.src = work.image ? work.image : buildPlaceholderDataURI(work);
+    imgEl.alt = work.title;
+  }
+
+  function openPoster(key) {
+    ensurePosterPlaceholders();
+    renderPosterDetail(key);
+    goTo('detail');
+  }
+  window.openPoster = openPoster;
 
   // -------- Menu hover swap (single SVG + hotspots) --------
   let menuInited = false;
