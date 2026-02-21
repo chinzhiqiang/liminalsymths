@@ -6,13 +6,13 @@
     <title>liminalsynths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @font-face{
+                @font-face{
             font-family: "NeueMetanaNext";
             src: url("NeueMetanaNext-SemiBold.otf") format("opentype");
             font-weight: 600;
             font-style: normal;
         }
-
+        
         body {
             margin: 0;
             font-family: 'NeueMetanaNext', sans-serif;
@@ -42,10 +42,10 @@
         .w-72{ width: 18rem; }
         .max-h-\[78vh\]{ max-height: 78vh; }
 
-        /* 隱藏系統游標，改用自訂 SVG */
-        body, button, a, img { cursor: none; }
 
-        .page {
+        /* 自訂滑鼠游標（SVG/mouse.svg）— 隱藏系統游標，使用 #customCursor 跟隨滑鼠 */
+body, .page, .clickable, button, a, img { cursor: none; }
+.page {
             display: none;
             width: 100vw;
             height: 100vh;
@@ -53,36 +53,46 @@
             top: 0;
             left: 0;
         }
-        .active { display: block; }
+
+        .active {
+            display: block;
+        }
 
         /* 目錄選項反藍效果 */
         .menu-item:hover { background-color: #0000FF; color: white; padding: 0 10px; }
 
-        /* 作品牆撥動效果 */
-        .floating-img { transition: transform 0.18s ease-out; position: absolute; will-change: transform; }
+        /* 作品牆撥動效果：預設只做輕微 hover，真正的撥動在 JS 針對單張圖片 */
+        .floating-img { transition: transform 0.18s ease-out; cursor: pointer; position: absolute; will-change: transform; }
         .floating-img:hover { z-index: 50; }
+
 
         .landing-logo{ width: min(720px, 80vw); height: auto; display:block; }
 
-        /* 目錄頁 */
+        /* 目錄頁：使用 SVG 本體，大小一致＋上下輕微重疊（像參考圖） */
         #menu{ background:#ffffff; }
-        .center-screen{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
-        .menu-swap{ position:relative; width:min(720px, 92vw); }
-        .menu-swap img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
-        .menu-hotspots{
-            position:absolute; inset:0;
-            display:grid;
-            grid-template-rows: repeat(6, 1fr);
-            background: transparent;
+        .menu-stack{
+            width: 100vw;
+            height: 100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
         }
-        .menu-hotspot{
-            appearance:none;
-            border:none;
-            background: transparent;
-            padding:0;
-            margin:0;
-            cursor: none;
+        .menu-stack-inner{
+            width: min(820px, 84vw);
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap: 0px;
         }
+        .menu-link{ user-select:none; }
+        .menu-link img{
+            width: 100%;
+            height:auto;
+            display:block;
+        }
+        /* 輕微重疊 */
+        .menu-link + .menu-link{ margin-top: -18px; }
 
         .back-arrow { position: absolute; top: 44px; right: 44px; z-index: 100; }
         .back-icon{ width: 30px; height: 30px; display:block; }
@@ -103,56 +113,77 @@
             white-space: pre;
         }
 
+        /* 更像檔案二：大量留白、文字不要太粗 */
         .meta-text { font-size: 12px; line-height: 1.35; color: #111; }
         .small-title { font-size: 22px; font-weight: 600; }
-
+    
+        .center-screen{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+        .menu-swap{ position:relative; width:min(720px, 92vw); }
+        .menu-swap img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
+        .menu-hotspots{
+            position:absolute; inset:0;
+            display:grid;
+            grid-template-rows: repeat(6, 1fr);
+            background: transparent;
+        }
+        .menu-hotspot{
+            appearance:none;
+            border:none;
+            background: transparent;
+            cursor: none; /* use custom cursor */
+            padding:0;
+            margin:0;
+        }
         /* Ensure no drop shadow on detail images */
         .detail-image{ box-shadow:none !important; filter:none !important; }
 
-        /* Custom cursor (SVG) */
-        #customCursor{
-            position: fixed;
-            top: 0; left: 0;
-            width: 32px;
-            height: 32px;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-100px, -100px);
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-        #customCursor.down{
-            transform: translate(-100px, -100px) scale(0.88);
-        }
-    </style>
+
+        /* Custom cursor: SVG mouse */
+#customCursor{
+  position: fixed;
+  top: 0; left: 0;
+  width: 32px; height: 32px;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-100px, -100px);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+#customCursor.down{
+  transform: translate(-100px, -100px) scale(0.88);
+}
+</style>
 </head>
 <body>
 
-    <!-- landing -->
+    <!-- landing（對齊檔案二：頁6） -->
     <div id="landing" class="page active">
         <div class="w-full h-full flex items-center justify-center">
-            <img src="SVG/liminalsynths-logo.svg" class="landing-logo" alt="liminalsynths" onclick="goTo('menu')">
+            <img src="SVG/liminalsynths-logo.svg" class="landing-logo clickable" alt="liminalsynths" onclick="goTo('menu')">
         </div>
     </div>
 
-    <div id="menu" class="page">
-        <div class="center-screen">
-            <div class="menu-swap">
-                <img id="menuSvg" src="SVG/original.svg" alt="menu" draggable="false"/>
-                <div class="menu-hotspots" aria-label="menu hotspots">
-                    <button class="menu-hotspot" data-src="SVG/about.svg" data-target="about" aria-label="about"></button>
-                    <button class="menu-hotspot" data-src="SVG/contact.svg" data-target="contact" aria-label="contact"></button>
-                    <button class="menu-hotspot" data-src="SVG/poster.svg" data-target="poster" aria-label="poster"></button>
-                    <button class="menu-hotspot" data-src="SVG/typographic.svg" data-target="typographic" aria-label="typographic"></button>
-                    <button class="menu-hotspot" data-src="SVG/illustration.svg" data-target="illustration" aria-label="illustration"></button>
-                    <button class="menu-hotspot" data-src="SVG/project.svg" data-target="project" aria-label="project"></button>
-                </div>
+    
+<div id="menu" class="page">
+    <div class="center-screen">
+        <div class="menu-swap">
+            <img id="menuSvg" src="SVG/original.svg" alt="menu" draggable="false"/>
+            <div class="menu-hotspots" aria-label="menu hotspots">
+                <button class="menu-hotspot" data-src="SVG/about.svg" data-target="about" aria-label="about"></button>
+                <button class="menu-hotspot" data-src="SVG/contact.svg" data-target="contact" aria-label="contact"></button>
+                <button class="menu-hotspot" data-src="SVG/poster.svg" data-target="poster" aria-label="poster"></button>
+                <button class="menu-hotspot" data-src="SVG/typographic.svg" data-target="typographic" aria-label="typographic"></button>
+                <button class="menu-hotspot" data-src="SVG/illustration.svg" data-target="illustration" aria-label="illustration"></button>
+                <button class="menu-hotspot" data-src="SVG/project.svg" data-target="project" aria-label="project"></button>
             </div>
         </div>
     </div>
+</div>
+</div>
+    </div>
 
     <div id="about" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="bg-gray-200 p-10 text-center text-xl leading-relaxed" style="width: min(680px, 84vw);">
                 In the liminal state between<br>
@@ -164,7 +195,7 @@
     </div>
 
     <div id="contact" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center text-center">
             <div>
                 <div class="meta-text" style="font-size:16px;">liminalsynths@gmail.com</div>
@@ -174,8 +205,9 @@
     </div>
 
     <div id="poster" class="page" style="background: white;">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
+        <!-- 對齊檔案二：頁1（大片留白＋散落拼貼） -->
         <img src="image/iridescent 2017.jpg" class="floating-img w-44" style="top:18%; left:8%;" onclick="goTo('detail')">
         <img src="image/multiboost.jpg" class="floating-img w-72" style="top:24%; left:18%;" onclick="goTo('detail')">
         <img src="image/mirror 2021.jpg" class="floating-img w-60" style="top:8%; left:40%;" onclick="goTo('detail')">
@@ -186,8 +218,9 @@
     </div>
 
     <div id="detail" class="page">
-        <div class="back-arrow" onclick="goTo('poster')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('poster')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
+        <!-- 對齊檔案二：頁2（左側資訊＋右側大圖） -->
         <div class="w-full h-full relative">
             <div class="absolute left-24 top-24">
                 <div class="small-title">foray</div>
@@ -206,8 +239,9 @@
         </div>
     </div>
 
+    <!-- typographic（對齊檔案二：頁3） -->
     <div id="typographic" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
         <div class="w-full h-full flex items-center justify-center">
             <div class="shadow-type text-left" data-text="about\ncontact\nposter\ntypographic\nillustration\nproject" style="font-family: NeueMetanaNext, sans-serif; font-size: 86px; line-height: 0.92; letter-spacing: -0.03em;">
@@ -221,20 +255,22 @@
         </div>
     </div>
 
+    <!-- illustration / project：先放同版式 placeholder，之後換你的內容 -->
     <div id="illustration" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="meta-text" style="font-size:18px;">illustration (coming soon)</div>
         </div>
     </div>
 
     <div id="project" class="page">
-        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="meta-text" style="font-size:18px;">project (coming soon)</div>
         </div>
     </div>
 
+    
 <script>
 (() => {
   const pages = document.querySelectorAll('.page');
@@ -244,12 +280,13 @@
     const target = document.getElementById(pageId);
     if (target) target.classList.add('active');
 
+    // Init per-page interactions (lazy)
     if (pageId === 'menu') initMenuSwap();
     if (pageId === 'poster') initPosterInteraction();
   }
   window.goTo = goTo;
 
-  // -------- Menu hover swap --------
+  // -------- Menu hover swap (single SVG + hotspots) --------
   let menuInited = false;
   function initMenuSwap() {
     if (menuInited) return;
@@ -274,6 +311,7 @@
       });
     });
 
+    // safety reset
     menuSvg.src = originalSrc;
     menuInited = true;
   }
@@ -285,27 +323,31 @@
   cursor.alt = 'cursor';
   document.body.appendChild(cursor);
 
-  let cursorX = -100, cursorY = -100;
+  // keep cursor centered on the pointer
+  const placeCursor = (x, y, scale=1) => {
+    cursor.style.left = x + 'px';
+    cursor.style.top  = y + 'px';
+    cursor.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  };
+
+  let lastX = -100, lastY = -100;
   document.addEventListener('mousemove', (e) => {
-    cursorX = e.clientX;
-    cursorY = e.clientY;
-    // 讓游標中心對齊滑鼠位置
-    cursor.style.left = cursorX + 'px';
-    cursor.style.top  = cursorY + 'px';
-    cursor.style.transform = 'translate(-50%, -50%)';
+    lastX = e.clientX;
+    lastY = e.clientY;
+    placeCursor(lastX, lastY, cursor.classList.contains('down') ? 0.88 : 1);
   });
 
   document.addEventListener('mousedown', () => {
     cursor.classList.add('down');
-    // down 狀態也要維持中心對齊
-    cursor.style.transform = 'translate(-50%, -50%) scale(0.88)';
-  });
-  document.addEventListener('mouseup', () => {
-    cursor.classList.remove('down');
-    cursor.style.transform = 'translate(-50%, -50%)';
+    placeCursor(lastX, lastY, 0.88);
   });
 
-  // -------- Poster interactions: drag drift + collision bounce --------
+  document.addEventListener('mouseup', () => {
+    cursor.classList.remove('down');
+    placeCursor(lastX, lastY, 1);
+  });
+
+  // -------- Poster interactions: drag drift + collision bounce ---: drag drift + collision bounce --------
   let posterInited = false;
 
   function initPosterInteraction() {
@@ -317,22 +359,27 @@
     const items = Array.from(poster.querySelectorAll('img.floating-img'));
     if (!items.length) { posterInited = true; return; }
 
+    // disable CSS transition to avoid fighting physics
     items.forEach(el => (el.style.transition = 'none'));
 
     const states = items.map((el) => {
       const rect = el.getBoundingClientRect();
       return {
         el,
+        // base position in px (from current layout)
         baseX: rect.left,
         baseY: rect.top,
+        // size
         w: rect.width,
         h: rect.height,
+        // offsets + velocity
         x: 0, y: 0,
         vx: (Math.random() - 0.5) * 10,
         vy: (Math.random() - 0.5) * 10
       };
     });
 
+    // rebase on resize (keeps offsets)
     const rebake = () => {
       states.forEach(s => {
         const r = s.el.getBoundingClientRect();
@@ -344,6 +391,7 @@
     };
     window.addEventListener('resize', () => requestAnimationFrame(rebake));
 
+    // dragging detection + mouse delta
     let dragging = false;
     let lastX = 0, lastY = 0;
 
@@ -361,7 +409,9 @@
       lastY = e.clientY;
     });
 
-    document.addEventListener('mouseup', () => { dragging = false; });
+    document.addEventListener('mouseup', () => {
+      dragging = false;
+    });
 
     document.addEventListener('mousemove', (e) => {
       if (!poster.classList.contains('active')) return;
@@ -372,16 +422,19 @@
       lastX = e.clientX;
       lastY = e.clientY;
 
+      // only when actually moving
       if (Math.abs(dx) + Math.abs(dy) < 0.5) return;
 
       const hit = document.elementFromPoint(e.clientX, e.clientY);
       const s = findStateFromEl(hit);
       if (!s) return;
 
+      // impulse in drag direction (visible drift, but still subtle)
       const impulse = 0.9;
       s.vx += dx * impulse;
       s.vy += dy * impulse;
 
+      // also nudge neighbors slightly (gives "flow" feeling)
       const cx = (s.baseX + s.x) + s.w/2;
       const cy = (s.baseY + s.y) + s.h/2;
 
@@ -398,11 +451,12 @@
       });
     });
 
-    const overlapLimit = 2/3;
-    const friction = 0.88;
-    const maxSpeed = 55;
-    const edgeBounce = 0.55;
-    const repel = 0.010;
+    // physics params
+    const overlapLimit = 2/3;   // max overlap ratio of smaller image area
+    const friction = 0.88;      // damping
+    const maxSpeed = 55;        // cap
+    const edgeBounce = 0.55;    // rebound on edges
+    const repel = 0.010;        // collision push factor
 
     function step() {
       if (!poster.classList.contains('active')) {
@@ -413,7 +467,9 @@
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
+      // integrate motion
       for (const s of states) {
+        // clamp speed
         const sp = Math.hypot(s.vx, s.vy);
         if (sp > maxSpeed) {
           s.vx = (s.vx / sp) * maxSpeed;
@@ -426,6 +482,7 @@
         s.vx *= friction;
         s.vy *= friction;
 
+        // edge constraints (keep some margin)
         const left = s.baseX + s.x;
         const top  = s.baseY + s.y;
         const right = left + s.w;
@@ -438,6 +495,7 @@
         if (bottom > vh - margin) { s.y -= (bottom - (vh - margin)); s.vy *= -edgeBounce; }
       }
 
+      // pairwise overlap control (bounce when overlap too high)
       for (let i = 0; i < states.length; i++) {
         for (let j = i + 1; j < states.length; j++) {
           const a = states[i], b = states[j];
@@ -456,6 +514,7 @@
           const ratio = interArea / (minArea || 1);
 
           if (ratio > overlapLimit) {
+            // push away along center-to-center direction
             const acx = ax1 + a.w/2, acy = ay1 + a.h/2;
             const bcx = bx1 + b.w/2, bcy = by1 + b.h/2;
             let dx = bcx - acx;
@@ -470,6 +529,7 @@
             b.vx += dx * strength * repel;
             b.vy += dy * strength * repel;
 
+            // positional correction (prevents "sticking" when overlap is deep)
             const push = (ratio - overlapLimit) * 18;
             a.x -= dx * push;
             a.y -= dy * push;
@@ -479,6 +539,7 @@
         }
       }
 
+      // apply transforms
       for (const s of states) {
         s.el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
       }
@@ -490,6 +551,7 @@
     posterInited = true;
   }
 
+  // default landing
   goTo('landing');
 })();
 </script>
