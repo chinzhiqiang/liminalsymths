@@ -387,10 +387,10 @@ body, .page, .clickable, button, a, img { cursor: none; }
         // idle float params (water-like drift)
         phx: rand() * Math.PI * 2,
         phy: rand() * Math.PI * 2,
-        ampx: 6 + rand() * 10,
-        ampy: 6 + rand() * 10,
-        fx: 0.15 + rand() * 0.18,
-        fy: 0.15 + rand() * 0.18,
+        ampx: 3 + rand() * 2,
+        ampy: 3 + rand() * 3,
+        fx: 0.8 + rand() * 0.6,
+        fy: 0.8 + rand() * 0.6,
         // cached float offset
         floatX: 0,
         floatY: 0
@@ -432,19 +432,19 @@ body, .page, .clickable, button, a, img { cursor: none; }
 
     // physics constants
     const overlapLimit = 1/3;       // <-- stricter: don't overlap more than 1/3
-    const friction = 0.90;
-    const maxSpeed = 40;
+    const friction = 0.82;
+    const maxSpeed = 18;
     const edgeBounce = 0.55;
 
     // hover/tug tuning
-    const dragImpulse = 0.65;       // how much the hovered item follows cursor movement
-    const attractImpulse = 0.018;   // how much it "leans" toward cursor even when cursor stops
-    const neighborRadius = 300;
-    const neighborFalloff = 0.22;
+    const dragImpulse = 0.25;       // how much the hovered item follows cursor movement
+    const attractImpulse = 0.006;   // how much it "leans" toward cursor even when cursor stops
+    const neighborRadius = 260;
+    const neighborFalloff = 0.10;
 
     // collision tuning
-    const repel = 0.014;            // velocity push
-    const pushOut = 20;             // positional correction
+    const repel = 0.008;            // velocity push
+    const pushOut = 12;             // positional correction
 
     let lastT = performance.now();
 
@@ -462,8 +462,8 @@ body, .page, .clickable, button, a, img { cursor: none; }
       // ---- idle float (water surface) ----
       for (const s of states) {
         // slow drifting offset
-        s.floatX = Math.sin(t * 0.001 * (s.fx * 60) + s.phx) * s.ampx;
-        s.floatY = Math.cos(t * 0.001 * (s.fy * 60) + s.phy) * s.ampy;
+        s.floatX = Math.sin(t * 0.00022 * s.fx + s.phx) * s.ampx;
+        s.floatY = Math.cos(t * 0.00019 * s.fy + s.phy) * s.ampy;
       }
 
       // ---- hover tug (no need to drag) ----
