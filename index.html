@@ -6,13 +6,13 @@
     <title>liminalsynths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-                @font-face{
+        @font-face{
             font-family: "NeueMetanaNext";
             src: url("NeueMetanaNext-SemiBold.otf") format("opentype");
             font-weight: 600;
             font-style: normal;
         }
-        
+
         body {
             margin: 0;
             font-family: 'NeueMetanaNext', sans-serif;
@@ -42,13 +42,8 @@
         .w-72{ width: 18rem; }
         .max-h-\[78vh\]{ max-height: 78vh; }
 
-
-        /* 黑色點點滑鼠游標 */
-        :root{
-            --dot-cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="3.2" fill="black"/></svg>') 9 9;
-        }
-        body, .page{ cursor: var(--dot-cursor), auto; }
-        .clickable{ cursor: var(--dot-cursor), pointer; }
+        /* 隱藏系統游標，改用自訂 SVG */
+        body, button, a, img { cursor: none; }
 
         .page {
             display: none;
@@ -58,46 +53,36 @@
             top: 0;
             left: 0;
         }
-
-        .active {
-            display: block;
-        }
+        .active { display: block; }
 
         /* 目錄選項反藍效果 */
         .menu-item:hover { background-color: #0000FF; color: white; padding: 0 10px; }
 
-        /* 作品牆撥動效果：預設只做輕微 hover，真正的撥動在 JS 針對單張圖片 */
-        .floating-img { transition: transform 0.18s ease-out; cursor: pointer; position: absolute; will-change: transform; }
+        /* 作品牆撥動效果 */
+        .floating-img { transition: transform 0.18s ease-out; position: absolute; will-change: transform; }
         .floating-img:hover { z-index: 50; }
-
 
         .landing-logo{ width: min(720px, 80vw); height: auto; display:block; }
 
-        /* 目錄頁：使用 SVG 本體，大小一致＋上下輕微重疊（像參考圖） */
+        /* 目錄頁 */
         #menu{ background:#ffffff; }
-        .menu-stack{
-            width: 100vw;
-            height: 100vh;
-            display:flex;
-            align-items:center;
-            justify-content:center;
+        .center-screen{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+        .menu-swap{ position:relative; width:min(720px, 92vw); }
+        .menu-swap img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
+        .menu-hotspots{
+            position:absolute; inset:0;
+            display:grid;
+            grid-template-rows: repeat(6, 1fr);
+            background: transparent;
         }
-        .menu-stack-inner{
-            width: min(820px, 84vw);
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap: 0px;
+        .menu-hotspot{
+            appearance:none;
+            border:none;
+            background: transparent;
+            padding:0;
+            margin:0;
+            cursor: none;
         }
-        .menu-link{ user-select:none; }
-        .menu-link img{
-            width: 100%;
-            height:auto;
-            display:block;
-        }
-        /* 輕微重疊 */
-        .menu-link + .menu-link{ margin-top: -18px; }
 
         .back-arrow { position: absolute; top: 44px; right: 44px; z-index: 100; }
         .back-icon{ width: 30px; height: 30px; display:block; }
@@ -118,75 +103,56 @@
             white-space: pre;
         }
 
-        /* 更像檔案二：大量留白、文字不要太粗 */
         .meta-text { font-size: 12px; line-height: 1.35; color: #111; }
         .small-title { font-size: 22px; font-weight: 600; }
-    
-        .center-screen{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
-        .menu-swap{ position:relative; width:min(720px, 92vw); }
-        .menu-swap img{ width:100%; height:auto; display:block; user-select:none; -webkit-user-drag:none; }
-        .menu-hotspots{
-            position:absolute; inset:0;
-            display:grid;
-            grid-template-rows: repeat(6, 1fr);
-            background: transparent;
-        }
-        .menu-hotspot{
-            appearance:none;
-            border:none;
-            background: transparent;
-            cursor: none; /* use custom cursor */
-            padding:0;
-            margin:0;
-        }
+
         /* Ensure no drop shadow on detail images */
         .detail-image{ box-shadow:none !important; filter:none !important; }
 
-
-        /* Custom cursor: black dot */
+        /* Custom cursor (SVG) */
         #customCursor{
             position: fixed;
             top: 0; left: 0;
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #000;
+            width: 32px;
+            height: 32px;
             pointer-events: none;
-            transform: translate(-100px, -100px);
             z-index: 9999;
+            transform: translate(-100px, -100px);
+            user-select: none;
+            -webkit-user-drag: none;
         }
-        #customCursor.down{ width: 8px; height: 8px; }
-        body, button, a { cursor: none; }
-
-</style>
+        #customCursor.down{
+            transform: translate(-100px, -100px) scale(0.88);
+        }
+    </style>
 </head>
 <body>
 
-    <!-- landing（對齊檔案二：頁6） -->
+    <!-- landing -->
     <div id="landing" class="page active">
         <div class="w-full h-full flex items-center justify-center">
-            <img src="SVG/liminalsynths-logo.svg" class="landing-logo clickable" alt="liminalsynths" onclick="goTo('menu')">
+            <img src="SVG/liminalsynths-logo.svg" class="landing-logo" alt="liminalsynths" onclick="goTo('menu')">
         </div>
     </div>
 
-    
-<div id="menu" class="page">
-    <div class="center-screen">
-        <div class="menu-swap">
-            <img id="menuSvg" src="SVG/original.svg" alt="menu" draggable="false"/>
-            <div class="menu-hotspots" aria-label="menu hotspots">
-                <button class="menu-hotspot" data-src="SVG/about.svg" data-target="about" aria-label="about"></button>
-                <button class="menu-hotspot" data-src="SVG/contact.svg" data-target="contact" aria-label="contact"></button>
-                <button class="menu-hotspot" data-src="SVG/poster.svg" data-target="poster" aria-label="poster"></button>
-                <button class="menu-hotspot" data-src="SVG/typographic.svg" data-target="typographic" aria-label="typographic"></button>
-                <button class="menu-hotspot" data-src="SVG/illustration.svg" data-target="illustration" aria-label="illustration"></button>
-                <button class="menu-hotspot" data-src="SVG/project.svg" data-target="project" aria-label="project"></button>
+    <div id="menu" class="page">
+        <div class="center-screen">
+            <div class="menu-swap">
+                <img id="menuSvg" src="SVG/original.svg" alt="menu" draggable="false"/>
+                <div class="menu-hotspots" aria-label="menu hotspots">
+                    <button class="menu-hotspot" data-src="SVG/about.svg" data-target="about" aria-label="about"></button>
+                    <button class="menu-hotspot" data-src="SVG/contact.svg" data-target="contact" aria-label="contact"></button>
+                    <button class="menu-hotspot" data-src="SVG/poster.svg" data-target="poster" aria-label="poster"></button>
+                    <button class="menu-hotspot" data-src="SVG/typographic.svg" data-target="typographic" aria-label="typographic"></button>
+                    <button class="menu-hotspot" data-src="SVG/illustration.svg" data-target="illustration" aria-label="illustration"></button>
+                    <button class="menu-hotspot" data-src="SVG/project.svg" data-target="project" aria-label="project"></button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <div id="about" class="page">
-        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="bg-gray-200 p-10 text-center text-xl leading-relaxed" style="width: min(680px, 84vw);">
                 In the liminal state between<br>
@@ -198,7 +164,7 @@
     </div>
 
     <div id="contact" class="page">
-        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center text-center">
             <div>
                 <div class="meta-text" style="font-size:16px;">liminalsynths@gmail.com</div>
@@ -208,9 +174,8 @@
     </div>
 
     <div id="poster" class="page" style="background: white;">
-        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
-        <!-- 對齊檔案二：頁1（大片留白＋散落拼貼） -->
         <img src="image/iridescent 2017.jpg" class="floating-img w-44" style="top:18%; left:8%;" onclick="goTo('detail')">
         <img src="image/multiboost.jpg" class="floating-img w-72" style="top:24%; left:18%;" onclick="goTo('detail')">
         <img src="image/mirror 2021.jpg" class="floating-img w-60" style="top:8%; left:40%;" onclick="goTo('detail')">
@@ -221,9 +186,8 @@
     </div>
 
     <div id="detail" class="page">
-        <div class="back-arrow clickable" onclick="goTo('poster')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('poster')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
-        <!-- 對齊檔案二：頁2（左側資訊＋右側大圖） -->
         <div class="w-full h-full relative">
             <div class="absolute left-24 top-24">
                 <div class="small-title">foray</div>
@@ -242,9 +206,8 @@
         </div>
     </div>
 
-    <!-- typographic（對齊檔案二：頁3） -->
     <div id="typographic" class="page">
-        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
 
         <div class="w-full h-full flex items-center justify-center">
             <div class="shadow-type text-left" data-text="about\ncontact\nposter\ntypographic\nillustration\nproject" style="font-family: NeueMetanaNext, sans-serif; font-size: 86px; line-height: 0.92; letter-spacing: -0.03em;">
@@ -258,25 +221,23 @@
         </div>
     </div>
 
-    <!-- illustration / project：先放同版式 placeholder，之後換你的內容 -->
     <div id="illustration" class="page">
-        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="meta-text" style="font-size:18px;">illustration (coming soon)</div>
         </div>
     </div>
 
     <div id="project" class="page">
-        <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
+        <div class="back-arrow" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
             <div class="meta-text" style="font-size:18px;">project (coming soon)</div>
         </div>
     </div>
 
-    
 <script>
-  // -------- Page routing --------
-  const pages = Array.from(document.querySelectorAll('.page'));
+(() => {
+  const pages = document.querySelectorAll('.page');
 
   function goTo(pageId) {
     pages.forEach(p => p.classList.remove('active'));
@@ -284,64 +245,253 @@
     if (target) target.classList.add('active');
 
     if (pageId === 'menu') initMenuSwap();
+    if (pageId === 'poster') initPosterInteraction();
   }
-
-  // Expose for inline onclick
   window.goTo = goTo;
 
-  // -------- Menu hover swap (single SVG + hotspots) --------
+  // -------- Menu hover swap --------
   let menuInited = false;
   function initMenuSwap() {
     if (menuInited) return;
-    menuInited = true;
-
     const menuSvg = document.getElementById('menuSvg');
-    const buttons = Array.from(document.querySelectorAll('.menu-hotspot'));
-    if (!menuSvg || !buttons.length) return;
+    const btns = document.querySelectorAll('.menu-hotspot');
+    if (!menuSvg || !btns.length) return;
 
     const originalSrc = menuSvg.getAttribute('src') || 'SVG/original.svg';
 
-    buttons.forEach(btn => {
+    btns.forEach(btn => {
       const hoverSrc = btn.getAttribute('data-src');
       const target = btn.getAttribute('data-target');
 
       btn.addEventListener('mouseenter', () => {
         if (hoverSrc) menuSvg.src = hoverSrc;
       });
-
       btn.addEventListener('mouseleave', () => {
         menuSvg.src = originalSrc;
       });
-
       btn.addEventListener('click', () => {
         if (target) goTo(target);
       });
-
-      // Better mobile support
-      btn.addEventListener('touchstart', () => {
-        if (hoverSrc) menuSvg.src = hoverSrc;
-      }, { passive: true });
     });
 
-    // safety reset
     menuSvg.src = originalSrc;
+    menuInited = true;
   }
 
-  // -------- Custom cursor (black dot) --------
-  (function setupCursor(){
-    const cursor = document.createElement('div');
-    cursor.id = 'customCursor';
-    document.body.appendChild(cursor);
+  // -------- Custom cursor (SVG/mouse.svg) --------
+  const cursor = document.createElement('img');
+  cursor.id = 'customCursor';
+  cursor.src = 'SVG/mouse.svg';
+  cursor.alt = 'cursor';
+  document.body.appendChild(cursor);
+
+  let cursorX = -100, cursorY = -100;
+  document.addEventListener('mousemove', (e) => {
+    cursorX = e.clientX;
+    cursorY = e.clientY;
+    // 讓游標中心對齊滑鼠位置
+    cursor.style.left = cursorX + 'px';
+    cursor.style.top  = cursorY + 'px';
+    cursor.style.transform = 'translate(-50%, -50%)';
+  });
+
+  document.addEventListener('mousedown', () => {
+    cursor.classList.add('down');
+    // down 狀態也要維持中心對齊
+    cursor.style.transform = 'translate(-50%, -50%) scale(0.88)';
+  });
+  document.addEventListener('mouseup', () => {
+    cursor.classList.remove('down');
+    cursor.style.transform = 'translate(-50%, -50%)';
+  });
+
+  // -------- Poster interactions: drag drift + collision bounce --------
+  let posterInited = false;
+
+  function initPosterInteraction() {
+    if (posterInited) return;
+
+    const poster = document.getElementById('poster');
+    if (!poster) return;
+
+    const items = Array.from(poster.querySelectorAll('img.floating-img'));
+    if (!items.length) { posterInited = true; return; }
+
+    items.forEach(el => (el.style.transition = 'none'));
+
+    const states = items.map((el) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        el,
+        baseX: rect.left,
+        baseY: rect.top,
+        w: rect.width,
+        h: rect.height,
+        x: 0, y: 0,
+        vx: (Math.random() - 0.5) * 10,
+        vy: (Math.random() - 0.5) * 10
+      };
+    });
+
+    const rebake = () => {
+      states.forEach(s => {
+        const r = s.el.getBoundingClientRect();
+        s.baseX = r.left - s.x;
+        s.baseY = r.top - s.y;
+        s.w = r.width;
+        s.h = r.height;
+      });
+    };
+    window.addEventListener('resize', () => requestAnimationFrame(rebake));
+
+    let dragging = false;
+    let lastX = 0, lastY = 0;
+
+    const findStateFromEl = (el) => {
+      if (!el) return null;
+      const img = el.closest && el.closest('img.floating-img');
+      if (!img) return null;
+      return states.find(s => s.el === img) || null;
+    };
+
+    document.addEventListener('mousedown', (e) => {
+      if (!poster.classList.contains('active')) return;
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    document.addEventListener('mouseup', () => { dragging = false; });
 
     document.addEventListener('mousemove', (e) => {
-      cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-    });
-    document.addEventListener('mousedown', () => cursor.classList.add('down'));
-    document.addEventListener('mouseup', () => cursor.classList.remove('down'));
-  })();
+      if (!poster.classList.contains('active')) return;
+      if (!dragging) return;
 
-  // Optional: start clean on landing
-  // goTo('landing');
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      if (Math.abs(dx) + Math.abs(dy) < 0.5) return;
+
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      const s = findStateFromEl(hit);
+      if (!s) return;
+
+      const impulse = 0.9;
+      s.vx += dx * impulse;
+      s.vy += dy * impulse;
+
+      const cx = (s.baseX + s.x) + s.w/2;
+      const cy = (s.baseY + s.y) + s.h/2;
+
+      states.forEach(o => {
+        if (o === s) return;
+        const ocx = (o.baseX + o.x) + o.w/2;
+        const ocy = (o.baseY + o.y) + o.h/2;
+        const d = Math.hypot(ocx - cx, ocy - cy);
+        if (d < 260) {
+          const falloff = (1 - d/260) * 0.35;
+          o.vx += dx * impulse * falloff;
+          o.vy += dy * impulse * falloff;
+        }
+      });
+    });
+
+    const overlapLimit = 2/3;
+    const friction = 0.88;
+    const maxSpeed = 55;
+    const edgeBounce = 0.55;
+    const repel = 0.010;
+
+    function step() {
+      if (!poster.classList.contains('active')) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      for (const s of states) {
+        const sp = Math.hypot(s.vx, s.vy);
+        if (sp > maxSpeed) {
+          s.vx = (s.vx / sp) * maxSpeed;
+          s.vy = (s.vy / sp) * maxSpeed;
+        }
+
+        s.x += s.vx * 0.016;
+        s.y += s.vy * 0.016;
+
+        s.vx *= friction;
+        s.vy *= friction;
+
+        const left = s.baseX + s.x;
+        const top  = s.baseY + s.y;
+        const right = left + s.w;
+        const bottom = top + s.h;
+
+        const margin = 10;
+        if (left < margin) { s.x += (margin - left); s.vx *= -edgeBounce; }
+        if (top < margin) { s.y += (margin - top); s.vy *= -edgeBounce; }
+        if (right > vw - margin) { s.x -= (right - (vw - margin)); s.vx *= -edgeBounce; }
+        if (bottom > vh - margin) { s.y -= (bottom - (vh - margin)); s.vy *= -edgeBounce; }
+      }
+
+      for (let i = 0; i < states.length; i++) {
+        for (let j = i + 1; j < states.length; j++) {
+          const a = states[i], b = states[j];
+
+          const ax1 = a.baseX + a.x, ay1 = a.baseY + a.y;
+          const ax2 = ax1 + a.w,    ay2 = ay1 + a.h;
+          const bx1 = b.baseX + b.x, by1 = b.baseY + b.y;
+          const bx2 = bx1 + b.w,     by2 = by1 + b.h;
+
+          const ix = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
+          const iy = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
+          if (ix <= 0 || iy <= 0) continue;
+
+          const interArea = ix * iy;
+          const minArea = Math.min(a.w * a.h, b.w * b.h);
+          const ratio = interArea / (minArea || 1);
+
+          if (ratio > overlapLimit) {
+            const acx = ax1 + a.w/2, acy = ay1 + a.h/2;
+            const bcx = bx1 + b.w/2, bcy = by1 + b.h/2;
+            let dx = bcx - acx;
+            let dy = bcy - acy;
+            const d = Math.hypot(dx, dy) || 1;
+            dx /= d; dy /= d;
+
+            const strength = (ratio - overlapLimit) * 1400;
+
+            a.vx -= dx * strength * repel;
+            a.vy -= dy * strength * repel;
+            b.vx += dx * strength * repel;
+            b.vy += dy * strength * repel;
+
+            const push = (ratio - overlapLimit) * 18;
+            a.x -= dx * push;
+            a.y -= dy * push;
+            b.x += dx * push;
+            b.y += dy * push;
+          }
+        }
+      }
+
+      for (const s of states) {
+        s.el.style.transform = `translate(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px)`;
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+    posterInited = true;
+  }
+
+  goTo('landing');
+})();
 </script>
 
 </body>
