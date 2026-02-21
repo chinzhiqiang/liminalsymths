@@ -200,9 +200,17 @@ html.is-touch #customCursor{ display:none !important; }
 
 /* Desktop-only: About page text + grey box scale down by 0.5 (per request) */
 @media (min-width: 769px){
+
   #about .about-box{
-    transform: scale(0.5);
-    transform-origin: center;
+    width: 70%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  #about .about-box p{
+    font-size: 0.95rem;
+    line-height: 1.6;
   }
 }
 </style>
