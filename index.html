@@ -96,6 +96,7 @@ body, .page, .clickable, button, a, img { cursor: none; }
 
         .back-arrow { position: absolute; top: 44px; right: 44px; z-index: 100; }
         .back-icon{ width: 30px; height: 30px; display:block; }
+        .menu-back-icon{ width: 90px; height: 90px; }
 
         /* 檔案二的陰影字（頁3/頁6） */
         .shadow-type {
@@ -175,6 +176,7 @@ html.is-touch #customCursor{ display:none !important; }
   /* allow the UI to breathe on mobile without touching desktop */
   .back-arrow{ top: 18px; right: 18px; }
   .back-icon{ width: 26px; height: 26px; }
+  .menu-back-icon{ width: 78px; height: 78px; }
 
   /* Menu scaling (keeps the same design, just fits screen) */
   .menu-swap{ width: min(560px, 92vw); }
@@ -219,7 +221,7 @@ html.is-touch #customCursor{ display:none !important; }
     
 <div id="menu" class="page">
     <div class="back-arrow clickable" onclick="goTo('landing')">
-         <img src="SVG/返回鍵.svg" alt="back" class="back-icon">
+         <img src="SVG/返回鍵.svg" alt="back" class="back-icon menu-back-icon">
     </div>
 
     <div class="center-screen">
