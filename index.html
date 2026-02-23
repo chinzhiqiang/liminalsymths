@@ -78,7 +78,16 @@ body, .page, .clickable, button, a, img { cursor: none; }
             will-change: opacity, contents;
         }
         .landing-flash.active{ opacity:1; }
+        .landing-logo-wrap{
+            position:relative;
+            z-index:1;
+            display:inline-block;
+            line-height:0;
+        }
         .landing-logo{ position:relative; z-index:1; }
+        .landing-logo-flash{
+            pointer-events:none;
+        }
 
         /* 目錄頁：使用 SVG 本體，大小一致＋上下輕微重疊（像參考圖） */
         #menu{ background:#ffffff; }
@@ -224,7 +233,6 @@ html.is-touch #customCursor{ display:none !important; }
     <div id="landing" class="page active">
         <div class="landing-stage">
             <div class="landing-bg landing-bg-white" aria-hidden="true"></div>
-            <img id="landingFlash" class="landing-bg landing-flash" alt="artwork flash background" aria-hidden="true">
             <img src="SVG/liminalsynths-logo.svg" id="landingLogo" class="landing-logo clickable" alt="liminalsynths" onclick="goTo('menu')">
         </div>
     </div>
@@ -335,7 +343,7 @@ html.is-touch #customCursor{ display:none !important; }
     <div id="project" class="page">
         <div class="back-arrow clickable" onclick="goTo('menu')"><img src="SVG/返回鍵.svg" alt="back" class="back-icon"></div>
         <div class="w-full h-full flex items-center justify-center">
-            <div class="meta-text" style="font-size:18px;">project (coming soon)</div>
+            <div class="meta-text" style="font-size:18px;">HJGJKJHKHKJHKHJ</div>
         </div>
     </div>
 
@@ -388,8 +396,9 @@ html.is-touch #customCursor{ display:none !important; }
   ].map(name => `image/${encodeURIComponent(name)}`);
 
   function initLandingFlash() {
-    const logo = document.getElementById('landingLogo');
-    const flashLayer = document.getElementById('landingFlash');
+    const logo = document.querySelector('.landing-logo-wrap');
+    const flashLayer = document.getElementById('landingLogoFlash');
+    const blueBaseLayer = document.getElementById('landingLogoBlueBase');
     if (!logo || !flashLayer || !LANDING_FLASH_FILES.length) return;
 
     let timer = null;
@@ -397,7 +406,8 @@ html.is-touch #customCursor{ display:none !important; }
 
     const setRandomFlash = () => {
       if (LANDING_FLASH_FILES.length === 1) {
-        flashLayer.src = LANDING_FLASH_FILES[0];
+        flashLayer.setAttribute('href', LANDING_FLASH_FILES[0]);
+        flashLayer.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', LANDING_FLASH_FILES[0]);
         return;
       }
 
@@ -406,11 +416,13 @@ html.is-touch #customCursor{ display:none !important; }
         nextIndex = Math.floor(Math.random() * LANDING_FLASH_FILES.length);
       }
       lastIndex = nextIndex;
-      flashLayer.src = LANDING_FLASH_FILES[nextIndex];
+      flashLayer.setAttribute('href', LANDING_FLASH_FILES[nextIndex]);
+      flashLayer.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', LANDING_FLASH_FILES[nextIndex]);
     };
 
     const startFlash = () => {
       if (timer) return;
+      if (blueBaseLayer) blueBaseLayer.classList.add('active');
       flashLayer.classList.add('active');
       setRandomFlash();
       timer = window.setInterval(setRandomFlash, 45);
@@ -421,6 +433,7 @@ html.is-touch #customCursor{ display:none !important; }
         window.clearInterval(timer);
         timer = null;
       }
+      if (blueBaseLayer) blueBaseLayer.classList.remove('active');
       flashLayer.classList.remove('active');
     };
 
